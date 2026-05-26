@@ -112,11 +112,12 @@ let cartItems = [];
     // CREATE ORDER IN SHIPROCKET FIRST
     // -----------------------------------
     try{
-      
+    /**   
     const shipOrder = await createShiprocketOrder(plainOrder, {
       weight: calculatedWeight,
       isCOD: isCODEnabled
     });
+    
   
     if (!shipOrder || !shipOrder.order_id) {
   await session.abortTransaction();
@@ -156,6 +157,7 @@ let cartItems = [];
     });
 
     await newOrder.save({ session });
+    */
 // -----------------------------------
 // SAVE PAYMENT INFO (CASH / COD / OFFLINE)
 // -----------------------------------
@@ -397,5 +399,30 @@ res.json({
   } catch (error) {
     res.status(500).json({ error: error.message });
     console.log(error.message)
+  }
+};
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { customStatus } = req.body;
+    
+    if (!customStatus) {
+      return res.status(400).json({ error: 'Status is required' });
+    }
+    
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    order.customStatus = customStatus;
+    order.customStatusUpdatedAt = new Date();
+    
+    
+    await order.save();
+    
+    res.json({ success: true, order });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };

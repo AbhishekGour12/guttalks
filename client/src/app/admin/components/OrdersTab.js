@@ -1,9 +1,11 @@
+// OrdersTab.jsx (fully updated – no Shiprocket)
+"use client";
 import { motion } from "framer-motion";
-import { FaEye, FaTruck, FaFileExcel, FaSearch, FaCalendarAlt, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaEye, FaFileExcel, FaTimesCircle } from "react-icons/fa";
 import { useEffect, useState, useMemo } from "react";
 import * as XLSX from "xlsx";
-import { orderAPI } from "../../lib/order";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
   const [orders, setOrders] = useState(initialOrders);
@@ -12,9 +14,11 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
   const [dateRange, setDateRange] = useState({ from: "", to: "" });
   const [page, setPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState(null);
-
-  const normalizeStatus = (status = "") =>
-    status.toLowerCase().replace(/_/g, " ").trim();
+  const [updatingStatus, setUpdatingStatus] = useState(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [selectedStatusOrder, setSelectedStatusOrder] = useState(null);
+  const [newStatus, setNewStatus] = useState('');
+  const [trackingIdInput, setTrackingIdInput] = useState('');
 
   const LIMIT = 10;
 
@@ -22,10 +26,10 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
     try {
       setLoading(true);
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API}/api/admin/orders`);
-     
       if (res?.data?.orders) setOrders(res.data.orders);
     } catch (err) {
       console.error("Error fetching orders:", err);
+      toast.error("Failed to load orders");
     } finally {
       setLoading(false);
     }
@@ -39,31 +43,18 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
     setPage(1);
   }, [searchTerm, statusFilter, dateRange.from, dateRange.to]);
 
-  const getStatusColor = (status = "") => {
-    const s = normalizeStatus(status);
-    if (s === "delivered") return "bg-green-100 text-green-700";
-    if (s === "out for delivery") return "bg-orange-100 text-orange-700";
-    if (["in transit", "reached at hub"].includes(s)) return "bg-blue-100 text-blue-700";
-    if (["picked up", "out for pickup"].includes(s)) return "bg-purple-100 text-purple-700";
-    if (s.includes("rto")) return "bg-red-100 text-red-700";
-    if (s.includes("cancel")) return "bg-red-100 text-red-700";
-    return "bg-[#E8F4F7] text-[#18606D]";
-  };
-
   const filteredOrders = useMemo(() => {
     const s = searchTerm.toLowerCase().trim();
     return orders.filter((order) => {
       const user = order.userId || {};
-      const shipStatus = (order.shiprocketStatus || "").toLowerCase();
       const created = new Date(order.createdAt);
       const matchesSearch =
         !s ||
         (user.username || user.name || "").toLowerCase().includes(s) ||
         (user.email || "").toLowerCase().includes(s) ||
         (user.phone || "").toLowerCase().includes(s) ||
-        (order._id || "").toLowerCase().includes(s) ||
-        (order.shiprocketOrderId || "").toLowerCase().includes(s);
-      const matchesStatus = statusFilter === "all" || shipStatus.includes(statusFilter.toLowerCase());
+        (order._id || "").toLowerCase().includes(s);
+      const matchesStatus = statusFilter === "all" || (order.customStatus === statusFilter);
       let matchesDate = true;
       if (dateRange.from) {
         const from = new Date(dateRange.from);
@@ -102,8 +93,8 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
         "Total Amount (INR)": order.totalAmount || 0,
         "Payment Method": order.paymentMethod,
         "Payment Status": order.paymentStatus,
-        "Shiprocket Status": order.shiprocketStatus || "Pending",
-        "AWB Code": order.awbCode || "N/A"
+        "Order Status": getStatusLabel(order.customStatus || 'order_placed'),
+        "Tracking ID": order.trackingId || "N/A"
       };
     });
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -122,14 +113,6 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
     setPage(nextPage);
   };
 
-  const handleTrackShipment = (order) => {
-    if (!order.awbCode) {
-      alert("AWB not assigned yet.");
-      return;
-    }
-    window.open(`https://shiprocket.co/tracking/${order.awbCode}`, "_blank", "noopener,noreferrer");
-  };
-
   const getItemsSummary = (order) => {
     const items = Array.isArray(order.items) ? order.items : [];
     if (!items.length) return "No items";
@@ -144,27 +127,43 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
     return items.reduce((sum, i) => sum + (i.quantity || 0), 0);
   };
 
-  const getProgressStep = (status = "") => {
-    const s = normalizeStatus(status);
-    if (["pickup scheduled"].includes(s)) return 1;
-    if (["picked up", "out for pickup"].includes(s)) return 2;
-    if (["shipped", "in transit", "reached at hub"].includes(s)) return 3;
-    if (["out for delivery"].includes(s)) return 4;
-    if (["delivered"].includes(s)) return 5;
-    return 0;
+  // Status options
+  const statusOptions = [
+    { value: 'order_placed', label: 'Order Placed', color: 'bg-gray-100 text-gray-700' },
+    { value: 'kit_dispatched', label: 'Kit Dispatched', color: 'bg-blue-100 text-blue-700' },
+    { value: 'kit_delivered', label: 'Kit Delivered', color: 'bg-indigo-100 text-indigo-700' },
+    { value: 'pickup_requested', label: 'Pickup Requested', color: 'bg-purple-100 text-purple-700' },
+    { value: 'pickup_initiated', label: 'Pickup Initiated', color: 'bg-cyan-100 text-cyan-700' },
+    { value: 'sample_picked_up', label: 'Sample Picked Up', color: 'bg-teal-100 text-teal-700' },
+    { value: 'sample_received', label: 'Sample Received', color: 'bg-emerald-100 text-emerald-700' },
+    { value: 'qc_passed', label: 'QC Passed', color: 'bg-green-100 text-green-700' },
+    { value: 'completed', label: 'Completed', color: 'bg-green-200 text-green-800' },
+    { value: 'cancelled', label: 'Cancelled', color: 'bg-red-100 text-red-700' },
+  ];
+
+  const updateOrderStatus = async (orderId, customStatus, trackingId = null) => {
+    setUpdatingStatus(orderId);
+    try {
+      await axios.put(`${process.env.NEXT_PUBLIC_API}/api/admin/${orderId}/status`, {
+        customStatus
+      });
+      toast.success('Order status updated');
+      fetchOrders();
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to update status');
+    } finally {
+      setUpdatingStatus(null);
+    }
   };
 
-  const mapAdminReadableStatus = (status = "") => {
-    const s = normalizeStatus(status);
-    if (["order created", "pending"].includes(s)) return "Order Created";
-    if (["pickup scheduled"].includes(s)) return "Pickup Scheduled";
-    if (["out for pickup", "picked up"].includes(s)) return "Picked Up";
-    if (["shipped", "in transit", "reached at hub", "departed hub"].includes(s)) return "In Transit";
-    if (["out for delivery"].includes(s)) return "Out for Delivery";
-    if (["delivered"].includes(s)) return "Delivered";
-    if (s.includes("rto")) return "RTO / Returned";
-    if (s.includes("cancel")) return "Cancelled";
-    return "Processing";
+  const getStatusLabel = (statusValue) => {
+    const option = statusOptions.find(opt => opt.value === statusValue);
+    return option ? option.label : statusValue;
+  };
+
+  const getStatusColorClass = (statusValue) => {
+    const option = statusOptions.find(opt => opt.value === statusValue);
+    return option ? option.color : 'bg-gray-100 text-gray-700';
   };
 
   return (
@@ -173,7 +172,7 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl lg:text-3xl font-bold text-[#1A4D3E]">Order Management</h2>
-          <p className="text-[#64748B] text-sm lg:text-base">Manage all customer orders & Shiprocket shipments</p>
+          <p className="text-[#64748B] text-sm lg:text-base">Manage all customer orders</p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-3 lg:items-center">
@@ -183,14 +182,9 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
             className="px-3 py-2 rounded-xl border border-[#D9EEF2] text-sm text-[#1A4D3E] bg-white focus:outline-none focus:ring-2 focus:ring-[#18606D]"
           >
             <option value="all">All Status</option>
-            <option value="pickup scheduled">Pickup Scheduled</option>
-            <option value="picked up">Picked Up</option>
-            <option value="out for pickup">Out for Pickup</option>
-            <option value="in transit">In Transit</option>
-            <option value="out for delivery">Out for Delivery</option>
-            <option value="delivered">Delivered</option>
-            <option value="rto">RTO</option>
-            <option value="cancel">Cancelled</option>
+            {statusOptions.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
           </select>
 
           <div className="flex gap-2">
@@ -245,14 +239,13 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
                 <th className="px-4 py-3 text-left">Items</th>
                 <th className="px-4 py-3 text-left">Amount</th>
                 <th className="px-4 py-3 text-left">Payment</th>
-                <th className="px-4 py-3 text-left">Shiprocket</th>
+                <th className="px-4 py-3 text-left">Order Status</th>
                 <th className="px-4 py-3 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
               {paginatedOrders.map((order) => {
                 const user = order.userId || {};
-                const shipStatus = order.shiprocketStatus || "Pending";
                 return (
                   <motion.tr
                     key={order._id}
@@ -263,28 +256,28 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
                     <td className="px-4 py-3 font-semibold text-[#1A4D3E]">
                       #{order._id.slice(-6)}
                       <div className="text-xs text-[#64748B]">
-                        SR: {order.shiprocketOrderId || "—"}
+                        ID: {order._id}
                       </div>
-                     </td>
+                    </td>
                     <td className="px-4 py-3">
                       <p className="font-medium">{user.username || user.name || order.shippingAddress?.fullName || "Unknown User"}</p>
                       <p className="text-xs text-[#64748B] line-clamp-1">{user.email || order.shippingAddress?.email || "—"}</p>
                       <p className="text-xs text-[#64748B]">{user.phone || order.shippingAddress?.phone || ""}</p>
-                     </td>
+                    </td>
                     <td className="px-4 py-3 text-[#64748B]">
                       {new Date(order.createdAt).toLocaleDateString()}
                       <div className="text-xs">{new Date(order.createdAt).toLocaleTimeString()}</div>
-                     </td>
+                    </td>
                     <td className="px-4 py-3 text-xs text-[#1A4D3E]">
                       <div>{getItemsSummary(order)}</div>
                       <div className="text-[11px] text-[#64748B]">{totalItemCount(order)} item(s)</div>
-                     </td>
+                    </td>
                     <td className="px-4 py-3 text-[#18606D] font-bold">
                       ₹{order.totalAmount?.toFixed(2)}
                       <div className="text-[11px] text-[#64748B]">
                         Subtotal: ₹{order.subtotal?.toFixed(2)} + GST: ₹{order.gstAmount?.toFixed(2)}
                       </div>
-                     </td>
+                    </td>
                     <td className="px-4 py-3 text-xs">
                       <div className="font-semibold text-[#1A4D3E]">
                         {order.paymentMethod === "online" ? "Prepaid" : "COD"}
@@ -298,25 +291,33 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
                       }`}>
                         {order.paymentStatus || "Pending"}
                       </div>
-                     </td>
-                    <td className="px-4 py-3 text-xs">
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(mapAdminReadableStatus(shipStatus))}`}>
-                        {mapAdminReadableStatus(shipStatus)}
-                      </span>
-                      <div className="text-[11px] text-[#64748B] mt-1">Courier: {shipStatus}</div>
-                      <div className="text-[11px] text-[#64748B] mt-1">AWB: {order.awbCode || "—"}</div>
-                      <div className="flex gap-1 mt-1">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <span key={i} className={`h-1.5 w-5 rounded-full ${i < getProgressStep(shipStatus) ? "bg-[#18606D]" : "bg-gray-200"}`} />
-                        ))}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusColorClass(order.customStatus || 'order_placed')}`}>
+                          {getStatusLabel(order.customStatus || 'order_placed')}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setSelectedStatusOrder(order);
+                            setNewStatus(order.customStatus || 'order_placed');
+                            setTrackingIdInput(order.orderId || '');
+                            setShowStatusModal(true);
+                          }}
+                          className="text-xs text-[#18606D] hover:underline"
+                        >
+                          Update
+                        </button>
                       </div>
-                     </td>
+                      {order.orderId && (
+                        <p className="text-xs text-[#64748B] mt-1">Tracking: {order.orderId}</p>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
                         <ActionIcon icon={<FaEye />} tooltip="View details" onClick={() => setSelectedOrder(order)} />
-                        <ActionIcon icon={<FaTruck />} tooltip="Track shipment" onClick={() => handleTrackShipment(order)} />
                       </div>
-                     </td>
+                    </td>
                   </motion.tr>
                 );
               })}
@@ -350,7 +351,6 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
       <div className="grid sm:hidden gap-4">
         {paginatedOrders.map((order) => {
           const user = order.userId || {};
-          const shipStatus = order.shiprocketStatus || "Pending";
           return (
             <motion.div key={order._id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-4 rounded-2xl shadow border border-[#D9EEF2]">
               <div className="flex justify-between">
@@ -362,21 +362,89 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
                 <span>{totalItemCount(order)} item(s)</span>
                 <span>{new Date(order.createdAt).toLocaleDateString()}</span>
               </div>
-              <div className="mt-3 space-y-1">
-                <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(mapAdminReadableStatus(shipStatus))}`}>
-                  {mapAdminReadableStatus(shipStatus)}
-                </span>
-                <p className="text-[11px] text-[#64748B]">Courier: {shipStatus}</p>
-                <div className="flex gap-1 mt-1">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <span key={i} className={`h-1.5 flex-1 rounded-full ${i < getProgressStep(shipStatus) ? "bg-[#18606D]" : "bg-gray-200"}`} />
-                  ))}
+              <div className="mt-2">
+                <p className="text-xs text-[#64748B]">Order Status:</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusColorClass(order.customStatus || 'order_placed')}`}>
+                    {getStatusLabel(order.customStatus || 'order_placed')}
+                  </span>
+                  <button
+                    onClick={() => {
+                      setSelectedStatusOrder(order);
+                      setNewStatus(order.customStatus || 'order_placed');
+                      setTrackingIdInput(order.orderId || '');
+                      setShowStatusModal(true);
+                    }}
+                    className="text-xs text-[#18606D]"
+                  >
+                    Update
+                  </button>
                 </div>
+                {order.trackingId && <p className="text-xs text-[#64748B] mt-1">Tracking: {order.orderId}</p>}
               </div>
             </motion.div>
           );
         })}
       </div>
+
+      {/* Status Update Modal */}
+      {showStatusModal && selectedStatusOrder && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-2xl w-full max-w-md p-6"
+          >
+            <h3 className="text-xl font-bold text-[#1A4D3E] mb-4">Update Order Status</h3>
+            <p className="text-sm text-[#64748B] mb-4">Order #{selectedStatusOrder._id.slice(-6)}</p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Status</label>
+                <select
+                  value={newStatus}
+                  onChange={(e) => setNewStatus(e.target.value)}
+                  className="w-full px-3 py-2 border border-[#D9EEF2] rounded-xl focus:ring-2 focus:ring-[#18606D]"
+                >
+                  {statusOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Tracking ID (optional)</label>
+                <input
+                  type="text"
+                  value={trackingIdInput}
+                  onChange={(e) => setTrackingIdInput(e.target.value)}
+                  placeholder="Enter courier tracking number"
+                  className="w-full px-3 py-2 border border-[#D9EEF2] rounded-xl focus:ring-2 focus:ring-[#18606D]"
+                />
+              </div>
+              
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setShowStatusModal(false)}
+                  className="flex-1 py-2 border border-[#D9EEF2] rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    updateOrderStatus(selectedStatusOrder._id, newStatus, trackingIdInput);
+                    setShowStatusModal(false);
+                  }}
+                  disabled={updatingStatus === selectedStatusOrder._id}
+                  className="flex-1 bg-[#18606D] text-white py-2 rounded-xl disabled:opacity-50"
+                >
+                  {updatingStatus === selectedStatusOrder._id ? 'Updating...' : 'Update'}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Order Details Modal */}
       {selectedOrder && <OrderDetailsModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />}
@@ -429,7 +497,6 @@ const OrderDetailsModal = ({ order, onClose }) => {
               <p className="text-xs text-[#1A4D3E]">{order.shippingAddress?.addressLine1}</p>
               {order.shippingAddress?.addressLine2 && <p className="text-xs text-[#1A4D3E]">{order.shippingAddress.addressLine2}</p>}
               <p className="text-xs text-[#1A4D3E]">{order.shippingAddress?.city}, {order.shippingAddress?.state} - {order.shippingAddress?.pincode}</p>
-              <p className="text-xs text-[#64748B]">AWB: <span className="font-semibold">{order.awbCode || "—"}</span></p>
             </div>
           </div>
 
@@ -441,9 +508,9 @@ const OrderDetailsModal = ({ order, onClose }) => {
                   <img src={item.image ? `${process.env.NEXT_PUBLIC_API}${item.image}` : "/placeholder.png"} alt={item.product?.name || "Product"} className="w-12 h-12 rounded-xl object-cover" />
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-[#1A4D3E]">{item.product?.name || "Product"}</p>
-                    <p className="text-xs text-[#64748B]">Qty: {item.quantity} × ₹{item.product?.price}</p>
+                    <p className="text-xs text-[#64748B]">Qty: {item.quantity} × ₹{item.priceAtPurchase}</p>
                   </div>
-                  <div className="text-sm font-semibold text-[#18606D]">₹{(item.quantity * (item.product?.price || 0)).toFixed(2)}</div>
+                  <div className="text-sm font-semibold text-[#18606D]">₹{(item.quantity * item.priceAtPurchase).toFixed(2)}</div>
                 </div>
               ))}
             </div>
@@ -455,6 +522,7 @@ const OrderDetailsModal = ({ order, onClose }) => {
               <p>GST: <span className="font-semibold">₹{order.gstAmount?.toFixed(2)}</span></p>
               <p>Shipping: <span className="font-semibold">₹{order.shippingCharge?.toFixed(2)}</span></p>
               {order.discount ? <p>Discount: <span className="font-semibold text-green-700">-₹{order.discount?.toFixed(2)}</span></p> : null}
+              {order.trackingId && <p>Tracking ID: <span className="font-semibold">{order.orderId}</span></p>}
             </div>
             <div className="text-right">
               <p className="text-xs text-[#64748B]">Total Amount</p>

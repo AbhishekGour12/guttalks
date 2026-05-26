@@ -9,5 +9,4 @@ router.get('/', authMiddleware, getOrders);
 router.get('/:id', authMiddleware, getOrderById);
 router.get('/track/:shipmentId', authMiddleware, trackUserOrder);
 
-
 export default router;

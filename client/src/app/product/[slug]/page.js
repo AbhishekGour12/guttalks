@@ -151,6 +151,18 @@ export default function ProductPage() {
   const user = useSelector((state) => state.auth.user);
   const checkLogin = useCheckLogin();
 
+
+
+  useEffect(() => {
+    if (user && localStorage.getItem('pendingBooking') === 'true') {
+      localStorage.removeItem('pendingBooking');
+      const storedSlug = localStorage.getItem('pendingProductSlug');
+      if (storedSlug === slug) {
+        setShowScheduleModal(true);
+      }
+      localStorage.removeItem('pendingProductSlug');
+    }
+  }, [user, slug]);
   // ----- rating & review state -----
   const [reviews, setReviews] = useState([]);
   const [ratingSummary, setRatingSummary] = useState({
@@ -776,12 +788,7 @@ export default function ProductPage() {
 
       {/* Floating Action Buttons */}
       <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-40">
-        <button
-          onClick={whatsappShare}
-          className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-green-500 text-white shadow-lg flex items-center justify-center hover:scale-110 transition transform"
-        >
-          <Phone size={18} />
-        </button>
+       
         <button
           onClick={shareProduct}
           className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#18606D] text-white shadow-lg flex items-center justify-center hover:scale-110 transition transform"

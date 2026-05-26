@@ -6,6 +6,7 @@ import { CartProvider } from "./context/CartContext";
 import { ModalProvider } from "./context/ModalContext";
 import Script from "next/script";
 
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -30,28 +31,9 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-
-        {/* Tawk.to Script */}
-        <Script id="tawk-to" strategy="afterInteractive">
-          {`
-           <!--Start of Tawk.to Script-->
-
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/69f87ef3d21eb31c2f61e99c/1jnpavq4c';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-
-<!--End of Tawk.to Script-->
-           
-          `}
-        </Script>
-
-      <body className="min-h-full flex flex-col">
+    
+     <body className="min-h-full flex flex-col">
+         
         <Providers> 
         <CartProvider> 
         <ModalProvider>

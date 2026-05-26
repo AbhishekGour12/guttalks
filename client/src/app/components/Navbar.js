@@ -48,7 +48,7 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', href: '/', icon: FiHome },
     { name: 'Products', href: '#', icon: FiFileText, hasDropdown: true },
-    { name: 'My Orders', href: '/dashboard', icon: FiUser },
+    ...(user?[{ name: 'My Orders', href: '/dashboard', icon: FiUser }]:[]),
     { name: 'Contact', href: '/contact', icon: FiMail },
     { name: 'About', href: '/about', icon: FiShield },
   ];

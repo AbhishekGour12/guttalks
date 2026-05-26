@@ -44,7 +44,23 @@ const orderSchema = new mongoose.Schema({
   trackingHistory: { type: Array, default: [] },
   // COD specific
   codFee: { type: Number, default: 0 },
-  orderStatus: { type: String, default: 'Processing' }
+  customStatus: { 
+    type: String, 
+    enum: [
+      'order_placed',
+      'kit_dispatched',
+      'kit_delivered',
+      'pickup_requested',
+      'pickup_initiated',
+      'sample_picked_up',
+      'sample_received',
+      'qc_passed',
+      'completed',
+      'cancelled'
+    ],
+    default: 'order_placed'
+  },
+  customStatusUpdatedAt: { type: Date, default: Date.now },
 }, { timestamps: true });
 
 export default mongoose.models.Order || mongoose.model('Order', orderSchema);

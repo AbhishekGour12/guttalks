@@ -23,7 +23,19 @@ export const addProduct = async (req, res) => {
     if (productData.productType === 'program' && productData.stock === undefined) {
       return res.status(400).json({ error: 'Stock is required for program products' });
     }
+const durationOptions = productData.durationOptions?.map(opt => ({
+  duration: opt.duration,
+  originalPrice: Number(opt.originalPrice),
+  salePrice: Number(opt.salePrice),
+  discountPercent: opt.discountPercent || Math.round(((opt.originalPrice - opt.salePrice) / opt.originalPrice) * 100)
+})) || [];
 
+const packOptions = productData.packOptions?.map(opt => ({
+  name: opt.name,
+  originalPrice: Number(opt.originalPrice),
+  salePrice: Number(opt.salePrice),
+  discountPercent: opt.discountPercent || Math.round(((opt.originalPrice - opt.salePrice) / opt.originalPrice) * 100)
+})) || [];
     // Prepare product object
     const product = new Product({
       name: productData.name,
@@ -47,6 +59,8 @@ export const addProduct = async (req, res) => {
       // Program specific
       stock: productData.productType === 'program' ? Number(productData.stock) : 0,
       weight: productData.productType === 'program' ? (Number(productData.weight) || 0.5) : 0,
+      durationOptions,
+      packOptions
     });
 
     await product.save();
@@ -174,7 +188,20 @@ export const updateProduct = async (req, res) => {
         expertName: productData.expertName,
         stock: productData.productType === 'program' ? Number(productData.stock) : 0,
         weight: productData.productType === 'program' ? Number(productData.weight) : 0,
-        updatedAt: Date.now()
+        updatedAt: Date.now(),
+        // Inside addProduct, after parsing productData
+  durationOptions: productData.durationOptions?.map(opt => ({
+      duration: opt.duration,
+      originalPrice: Number(opt.originalPrice),
+      salePrice: Number(opt.salePrice),
+      discountPercent: opt.discountPercent || Math.round(((opt.originalPrice - opt.salePrice) / opt.originalPrice) * 100)
+    })) || [],
+    packOptions: productData.packOptions?.map(opt => ({
+      name: opt.name,
+      originalPrice: Number(opt.originalPrice),
+      salePrice: Number(opt.salePrice),
+      discountPercent: opt.discountPercent || Math.round(((opt.originalPrice - opt.salePrice) / opt.originalPrice) * 100)
+    })) || [],
       },
       { new: true }
     );
@@ -307,6 +334,9 @@ export const bulkAddProducts = async (req, res) => {
         expertName: productData.expertName || '',
         stock: productData.productType === 'program' ? Number(productData.stock) : 0,
         weight: productData.productType === 'program' ? (Number(productData.weight) || 0.5) : 0,
+        // Inside addProduct, after parsing productData
+durationOptions: productData.durationOptions || [],
+packOptions: productData.packOptions || [],
       });
     }
 

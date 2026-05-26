@@ -28,7 +28,17 @@ const HeroSection = () => {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [bubbles, setBubbles] = useState([]);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-
+// In HeroSection component (add after existing state declarations)
+useEffect(() => {
+  const pending = localStorage.getItem('pendingBooking');
+  if (pending === 'true') {
+    // Clear the flag so it doesn't reopen again on next refresh
+    localStorage.removeItem('pendingBooking');
+    localStorage.removeItem('pendingProduct');
+    localStorage.removeItem('pendingPrice');
+    setShowScheduleModal(true);
+  }
+}, []);
   useEffect(() => {
     const generated = Array.from({ length: 8 }).map((_, i) => ({
       size: 20 + i * 6,
@@ -146,7 +156,7 @@ const HeroSection = () => {
         </div>
 
         {/* Main container – edge-to-edge on mobile, padding only on inner content */}
-        <div className="w-full mx-auto px-0 sm:px-4 lg:px-8 py-12 md:py-16 lg:py-20 min-h-screen flex items-center ">
+        <div className="max-w-7xl mx-auto px-0 sm:px-4 lg:px-8 py-12 md:py-16 lg:py-20 min-h-screen flex items-center ">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center w-full">
             
             {/* LEFT SIDE - CONTENT */}

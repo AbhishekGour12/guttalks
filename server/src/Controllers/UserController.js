@@ -88,6 +88,7 @@ const mobile = phone.substring(3);
       
        // const result = await User.findOneAndUpdate({phone: phone.email}, {otp: otp});
        // console.log(result)
+      
        return res.status(200).json({ 
             success: true, 
             message: 'Verification request sent.',

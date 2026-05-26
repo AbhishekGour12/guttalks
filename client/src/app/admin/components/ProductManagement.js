@@ -51,6 +51,8 @@ const emptyBulkProduct = () => ({
   expertName: "",
   stock: 0,
   weight: 0.5,
+  durationOptions: [],
+  packOptions: [],
 });
 
 export default function ProductManagement({ searchTerm }) {
@@ -63,7 +65,8 @@ export default function ProductManagement({ searchTerm }) {
   const [productForm, setProductForm] = useState({ ...emptyProduct });
   const [tempImageFiles, setTempImageFiles] = useState([]);
   const [bulkProducts, setBulkProducts] = useState([emptyBulkProduct()]);
-
+  const [durationOptions, setDurationOptions] = useState([]);
+  const [packOptions, setPackOptions] = useState([]);
   // Fetch products
   useEffect(() => {
     fetchProducts();
@@ -84,6 +87,8 @@ export default function ProductManagement({ searchTerm }) {
   const resetForm = () => {
     setProductForm({ ...emptyProduct });
     setTempImageFiles([]);
+    setDurationOptions([]);
+setPackOptions([]);
   };
 
   const openAddModal = () => {
@@ -100,9 +105,12 @@ export default function ProductManagement({ searchTerm }) {
       whatToExpect: product.whatToExpect || [],
       features: product.features || [],
       faqs: product.faqs || [],
+      
     });
     setTempImageFiles([]);
     setShowEditModal(true);
+    setDurationOptions(product.durationOptions || []);
+setPackOptions(product.packOptions || []);
   };
 
   // Helper functions for arrays (same as before)
@@ -156,7 +164,7 @@ export default function ProductManagement({ searchTerm }) {
     setLoading(true);
     try {
       const formData = new FormData();
-      const productData = { ...productForm };
+      const productData = { ...productForm, durationOptions, packOptions };
       if (!productData._id) delete productData._id;
       formData.append("product", JSON.stringify(productData));
       tempImageFiles.forEach((file) => formData.append("images", file));
@@ -289,6 +297,8 @@ export default function ProductManagement({ searchTerm }) {
         stock: p.productType === "program" ? Number(p.stock) : 0,
         weight: p.productType === "program" ? Number(p.weight) : 0.5,
         imageFilesCount: p.images?.length || 0,
+        durationOptions: p.durationOptions || [],
+        packOptions: p.packOptions || [],
       }));
       formData.append("products", JSON.stringify(productsData));
       bulkProducts.forEach((p) => {
@@ -308,6 +318,36 @@ export default function ProductManagement({ searchTerm }) {
       setLoading(false);
     }
   };
+const addDurationOption = () => {
+  setDurationOptions([...durationOptions, { duration: '', originalPrice: '', salePrice: '', discountPercent: 0 }]);
+};
+const updateDurationOption = (idx, field, val) => {
+  const updated = [...durationOptions];
+  updated[idx][field] = val;
+  if (field === 'originalPrice' || field === 'salePrice') {
+    const original = field === 'originalPrice' ? Number(val) : updated[idx].originalPrice;
+    const sale = field === 'salePrice' ? Number(val) : updated[idx].salePrice;
+    if (original && sale) {
+      updated[idx].discountPercent = Math.round(((original - sale) / original) * 100);
+    }
+  }
+  setDurationOptions(updated);
+};
+const removeDurationOption = (idx) => {
+  setDurationOptions(durationOptions.filter((_, i) => i !== idx));
+};
+
+const addPackOption = () => {
+  setPackOptions([...packOptions, { pack: '', price: 0 }]);
+};
+const updatePackOption = (idx, field, val) => {
+  const updated = [...packOptions];
+  updated[idx][field] = field === 'price' ? parseFloat(val) : val;
+  setPackOptions(updated);
+};
+const removePackOption = (idx) => {
+  setPackOptions(packOptions.filter((_, i) => i !== idx));
+};
 
   return (
     <div className="space-y-6">
@@ -515,7 +555,79 @@ export default function ProductManagement({ searchTerm }) {
                     </div>
                   </div>
                 )}
+              {productForm.productType === "program" && (
+  <>
+    {/* Duration Options */}
+    <div>
+      <div className="flex justify-between items-center mb-2">
+        <label className="text-sm font-semibold text-[#1A4D3E]">Duration Options (e.g., 1 Month, 3 Months)</label>
+        <button type="button" onClick={addDurationOption} className="text-xs text-[#18606D] flex items-center gap-1">
+          <FaPlus size={10} /> Add Duration
+        </button>
+      </div>
+      {durationOptions.map((opt, idx) => (
+        <div key={idx} className="border border-[#D9EEF2] rounded-xl p-3 mb-3 bg-[#F4FAFB]">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-2">
+            <div>
+              <label className="block text-xs mb-1">Duration</label>
+              <input type="text" value={opt.duration} onChange={e => updateDurationOption(idx, 'duration', e.target.value)} placeholder="e.g., 1 Month" className="w-full px-2 py-1 bg-white border rounded-lg text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs mb-1">Original Price (₹)</label>
+              <input type="number" step="0.01" value={opt.originalPrice} onChange={e => updateDurationOption(idx, 'originalPrice', parseFloat(e.target.value))} className="w-full px-2 py-1 bg-white border rounded-lg text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs mb-1">Sale Price (₹)</label>
+              <input type="number" step="0.01" value={opt.salePrice} onChange={e => updateDurationOption(idx, 'salePrice', parseFloat(e.target.value))} className="w-full px-2 py-1 bg-white border rounded-lg text-sm" />
+            </div>
+            <div className="flex justify-between items-end">
+              <div>
+                <label className="block text-xs mb-1">Discount %</label>
+                <input type="text" value={opt.discountPercent} disabled className="w-full px-2 py-1 bg-gray-100 border rounded-lg text-sm" />
+              </div>
+              <button type="button" onClick={() => removeDurationOption(idx)} className="text-red-500 p-1"><FaTrash size={14} /></button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
 
+    {/* Pack Options */}
+    <div>
+      <div className="flex justify-between items-center mb-2">
+        <label className="text-sm font-semibold text-[#1A4D3E]">Pack Options (e.g., Single, Pack of 2)</label>
+        <button type="button" onClick={addPackOption} className="text-xs text-[#18606D] flex items-center gap-1">
+          <FaPlus size={10} /> Add Pack
+        </button>
+      </div>
+      {packOptions.map((opt, idx) => (
+        <div key={idx} className="border border-[#D9EEF2] rounded-xl p-3 mb-3 bg-[#F4FAFB]">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-2">
+            <div>
+              <label className="block text-xs mb-1">Pack Name</label>
+              <input type="text" value={opt.name} onChange={e => updatePackOption(idx, 'name', e.target.value)} placeholder="e.g., Family Pack" className="w-full px-2 py-1 bg-white border rounded-lg text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs mb-1">Original Price (₹)</label>
+              <input type="number" step="0.01" value={opt.originalPrice} onChange={e => updatePackOption(idx, 'originalPrice', parseFloat(e.target.value))} className="w-full px-2 py-1 bg-white border rounded-lg text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs mb-1">Sale Price (₹)</label>
+              <input type="number" step="0.01" value={opt.salePrice} onChange={e => updatePackOption(idx, 'salePrice', parseFloat(e.target.value))} className="w-full px-2 py-1 bg-white border rounded-lg text-sm" />
+            </div>
+            <div className="flex justify-between items-end">
+              <div>
+                <label className="block text-xs mb-1">Discount %</label>
+                <input type="text" value={opt.discountPercent} disabled className="w-full px-2 py-1 bg-gray-100 border rounded-lg text-sm" />
+              </div>
+              <button type="button" onClick={() => removePackOption(idx)} className="text-red-500 p-1"><FaTrash size={14} /></button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </>
+)}
                 {/* Benefits */}
                 <div>
                   <div className="flex justify-between items-center mb-2">

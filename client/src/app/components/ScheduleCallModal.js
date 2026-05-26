@@ -358,11 +358,16 @@ useEffect(() => {
   router.push('/dashboard');
 };
 
-  const handleLoginRedirect = () => {
-    localStorage.setItem('redirectAfterLogin', window.location.pathname);
-    router.push('/login');
-    onClose();
-  };
+ // Inside ScheduleCallModal.jsx, in the `handleLoginRedirect` function
+const handleLoginRedirect = () => {
+  // Store pending booking info before redirect
+  localStorage.setItem('pendingBooking', 'true');
+  localStorage.setItem('pendingProduct', productName);
+  localStorage.setItem('pendingPrice', productPrice.toString());
+  localStorage.setItem('redirectAfterLogin', window.location.pathname);
+  router.push('/login');
+  onClose(); // close the modal while redirecting
+};
 
   const hasAvailableSlots = (date) => availableDates.some(d => isSameDay(new Date(d), date));
 

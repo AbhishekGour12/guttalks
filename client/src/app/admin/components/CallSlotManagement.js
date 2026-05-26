@@ -211,7 +211,7 @@ export default function CallSlotManagement() {
               <p className="text-[#64748B]">No slots generated yet.</p>
             </div>
           ) : (
-            Object.entries(slots).map(([dateStr, daySlots]) => (
+            Object.entries(slots).slice().reverse().map(([dateStr, daySlots]) => (
               <div key={dateStr} className="p-4 hover:bg-[#F4FAFB] transition-colors">
                 <div className="flex justify-between items-center mb-3">
                   <div className="flex items-center gap-3">

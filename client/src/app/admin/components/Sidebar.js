@@ -8,7 +8,8 @@ export default function Sidebar({ activeTab, setActiveTab, sidebarOpen }) {
     {id: "availability", label: "Availability", icon: FaTachometerAlt },
     { id: "bookings", label: "Bookings", icon: FaCalendarAlt },
     {id: "orders", label: "Orders", icon: FaBoxes },
-    {id: "coupon", label: "Coupon", icon: FaGift }
+    {id: "coupon", label: "Coupon", icon: FaGift },
+    {id: "contact", label: "Contact", icon: FaTachometerAlt }
   ];
 
   return (

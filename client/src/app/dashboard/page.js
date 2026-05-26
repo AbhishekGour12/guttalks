@@ -8,30 +8,24 @@ import {
 import { orderAPI } from "../lib/order";
 import { bookingAPI } from "../lib/booking";
 import toast from "react-hot-toast";
-import OrderTracking from "../components/OrderTracking";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState("orders"); // "orders" or "consultations"
+  const [activeTab, setActiveTab] = useState("orders");
   const [orders, setOrders] = useState([]);
   const [bookings, setBookings] = useState([]);
-  const [trackId, setTrackId] = useState(null);
   const [expandedOrder, setExpandedOrder] = useState({});
   const [expandedBooking, setExpandedBooking] = useState({});
   const [loading, setLoading] = useState(true);
   const user = useSelector((state) => state.auth.user);
   const router = useRouter();
 
-  // Helper: normalize status
-  const normalizeStatus = (status = "") => status.toLowerCase().replace(/_/g, " ").trim();
-
   // Load Orders
   const loadOrders = async () => {
     try {
       const data = await orderAPI.getUserOrders();
-      console.log("Fetched Orders:", data.orders);
       setOrders(data.orders || []);
     } catch (e) {
       console.error("Error loading orders:", e);
@@ -42,7 +36,6 @@ const Dashboard = () => {
   const loadBookings = async () => {
     try {
       const data = await bookingAPI.getMyBookings();
-      console.log("Fetched Bookings:", data.bookings);
       setBookings(data.bookings || []);
     } catch (e) {
       console.error("Error loading bookings:", e);
@@ -67,48 +60,40 @@ const Dashboard = () => {
     setExpandedBooking((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Status styles for orders
-  const getOrderStatusStyle = (status) => {
-    const s = normalizeStatus(status);
-    if (s === "delivered") return "bg-green-100 text-green-700";
-    if (s === "out for delivery") return "bg-orange-100 text-orange-700";
-    if (["in transit", "reached at hub"].includes(s)) return "bg-blue-100 text-blue-700";
-    if (["picked up", "out for pickup", "pickup generated", "pickup completed"].includes(s)) return "bg-purple-100 text-purple-700";
-    if (s === "canceled") return "bg-red-100 text-red-700";
-    if (s.includes("rto")) return "bg-rose-100 text-rose-700";
-    return "bg-[#E8F4F7] text-[#18606D]";
+  // Custom order statuses mapping
+  const orderStatusMapping = {
+    order_placed: { label: "Order Placed", step: 0, color: "bg-gray-100 text-gray-700" },
+    kit_dispatched: { label: "Kit Dispatched", step: 1, color: "bg-blue-100 text-blue-700" },
+    kit_delivered: { label: "Kit Delivered", step: 2, color: "bg-indigo-100 text-indigo-700" },
+    pickup_requested: { label: "Pickup Requested", step: 3, color: "bg-purple-100 text-purple-700" },
+    pickup_initiated: { label: "Pickup Initiated", step: 4, color: "bg-cyan-100 text-cyan-700" },
+    sample_picked_up: { label: "Sample Picked Up", step: 5, color: "bg-teal-100 text-teal-700" },
+    sample_received: { label: "Sample Received", step: 6, color: "bg-emerald-100 text-emerald-700" },
+    qc_passed: { label: "QC Passed", step: 7, color: "bg-green-100 text-green-700" },
+    completed: { label: "Completed", step: 8, color: "bg-green-200 text-green-800" },
+    cancelled: { label: "Cancelled", step: -1, color: "bg-red-100 text-red-700" }
   };
 
-  const getOrderProgressStep = (status) => {
-    const s = normalizeStatus(status);
-    if (s === "order placed") return 0;
-    if (s === "pickup scheduled") return 1;
-    if (s === "picked up") return 2;
-    if (s === "in transit") return 3;
-    if (s === "out for delivery") return 4;
-    if (s === "delivered") return 5;
-    return 0;
+  const getOrderStatusDisplay = (status) => {
+    return orderStatusMapping[status] || { label: status, step: 0, color: "bg-gray-100 text-gray-700" };
   };
 
-  const mapOrderStatusForUser = (status) => {
-    const s = normalizeStatus(status);
-    if (["order placed", "processing"].includes(s)) return "Order Placed";
-    if (["pickup scheduled", "pickup generated"].includes(s)) return "Pickup Scheduled";
-    if (["out for pickup", "picked up", "pickup completed"].includes(s)) return "Picked Up";
-    if (["shipped", "in transit", "reached at hub", "departed hub"].includes(s)) return "In Transit";
-    if (["out for delivery"].includes(s)) return "Out for Delivery";
-    if (["delivered"].includes(s)) return "Delivered";
-    if (s === "canceled") return "Canceled";
-    if (s.includes("rto")) return "Returned";
-    return "Processing";
-  };
+  // Progress steps order
+  const progressSteps = [
+    "Order Placed",
+    "Kit Dispatched",
+    "Kit Delivered",
+    "Pickup Requested",
+    "Pickup Initiated",
+    "Sample Picked Up",
+    "Sample Received",
+    "QC Passed",
+    "Completed"
+  ];
 
-  // Booking status styles
-  const getBookingStatusStyle = (status) => {
-    if (status === "scheduled") return "bg-green-100 text-green-700";
-    if (status === "completed") return "bg-blue-100 text-blue-700";
-    if (status === "cancelled") return "bg-red-100 text-red-700";
-    return "bg-amber-100 text-amber-700";
+  const getCurrentStep = (status) => {
+    const step = orderStatusMapping[status]?.step;
+    return step !== undefined ? step : -1;
   };
 
   if (loading) {
@@ -164,122 +149,126 @@ const Dashboard = () => {
                 </button>
               </div>
             ) : (
-              orders.map((order) => (
-                <motion.div
-                  key={order._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-white rounded-2xl shadow-md border border-[#D9EEF2] p-6"
-                >
-                  {/* Header */}
-                  <div className="flex flex-wrap justify-between items-center gap-2">
-                    <div>
-                      <p className="font-semibold text-[#1A4D3E] text-lg">
-                        Order #{order._id.slice(-6)}
-                      </p>
-                      <p className="text-sm text-[#64748B]">
-                        {new Date(order.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-xl text-sm font-semibold ${getOrderStatusStyle(order.shiprocketStatus)}`}>
-                      {mapOrderStatusForUser(order.shiprocketStatus)}
-                    </span>
-                  </div>
-
-                  {/* Items */}
-                  <div className="mt-4 space-y-2">
-                    {order.items.map((i, idx) => (
-                      <div key={idx} className="flex items-center gap-3 bg-[#F4FAFB] p-3 rounded-xl">
-                        <img
-                          src={`${process.env.NEXT_PUBLIC_API}${i.image}`}
-                          className="w-12 h-12 rounded-lg object-cover border border-[#D9EEF2]"
-                          alt={i.product?.name}
-                        />
-                        <div className="flex-1">
-                          <p className="font-medium text-[#1A4D3E]">{i.product?.name}</p>
-                          <p className="text-sm text-[#64748B]">Qty: {i.quantity}</p>
-                        </div>
-                        <p className="font-bold text-[#18606D]">₹{i.priceAtPurchase}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Total + Track */}
-                  <div className="flex flex-wrap justify-between items-center mt-4 gap-3">
-                    <p className="font-bold text-xl text-[#18606D]">Total: ₹{order.totalAmount}</p>
-                    {order.shiprocketOrderId ? (
-                      <button
-                        onClick={() => setTrackId(order.shiprocketOrderId)}
-                        className="px-4 py-2 bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white rounded-xl flex items-center gap-2 shadow hover:shadow-lg transition"
-                      >
-                        <FaTruck /> Track Order
-                      </button>
-                    ) : (
-                      <button disabled className="px-4 py-2 bg-gray-200 text-gray-500 rounded-xl cursor-not-allowed">
-                        <FaTruck /> Creating Shipment...
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Expand button */}
-                  <button
-                    onClick={() => toggleOrderExpand(order._id)}
-                    className="mt-4 flex items-center gap-2 text-[#18606D] font-semibold hover:text-[#2A7F8F] transition"
+              orders.map((order) => {
+                const statusDisplay = getOrderStatusDisplay(order.customStatus || "order_placed");
+                const currentStep = getCurrentStep(order.customStatus || "order_placed");
+                return (
+                  <motion.div
+                    key={order._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white rounded-2xl shadow-md border border-[#D9EEF2] p-6"
                   >
-                    {expandedOrder[order._id] ? <FaChevronUp /> : <FaChevronDown />}
-                    {expandedOrder[order._id] ? "Hide Details" : "View Details"}
-                  </button>
+                    {/* Header */}
+                    <div className="flex flex-wrap justify-between items-center gap-2">
+                      <div>
+                        <p className="font-semibold text-[#1A4D3E] text-lg">
+                          Order #{order._id.slice(-6)}
+                        </p>
+                        <p className="text-sm text-[#64748B]">
+                          {new Date(order.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-xl text-sm font-semibold ${statusDisplay.color}`}>
+                        {statusDisplay.label}
+                      </span>
+                    </div>
 
-                  {/* Expanded details */}
-                  {expandedOrder[order._id] && (
-                    <div className="mt-4 pt-4 border-t border-[#D9EEF2] space-y-3">
-                      <div className="flex items-start gap-3">
-                        <FaMapMarkerAlt className="text-[#18606D] mt-1" />
-                        <div>
-                          <p className="font-semibold text-[#1A4D3E]">Delivery Address</p>
-                          <p className="text-sm text-[#64748B]">
-                            {order.shippingAddress.fullName}, {order.shippingAddress.addressLine1},{" "}
-                            {order.shippingAddress.city}, {order.shippingAddress.state} -{" "}
-                            {order.shippingAddress.pincode}
-                          </p>
+                    {/* Items */}
+                    <div className="mt-4 space-y-2">
+                      {order.items.map((i, idx) => (
+                        <div key={idx} className="flex items-center gap-3 bg-[#F4FAFB] p-3 rounded-xl">
+                          <img
+                            src={`${process.env.NEXT_PUBLIC_API}${i.image}`}
+                            className="w-12 h-12 rounded-lg object-cover border border-[#D9EEF2]"
+                            alt={i.product?.name}
+                          />
+                          <div className="flex-1">
+                            <p className="font-medium text-[#1A4D3E]">{i.product?.name}</p>
+                            <p className="text-sm text-[#64748B]">Qty: {i.quantity}</p>
+                          </div>
+                          <p className="font-bold text-[#18606D]">₹{i.priceAtPurchase}</p>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <FaMoneyBill className="text-[#18606D]" />
-                        <p className="text-[#1A4D3E]">Payment: <span className="font-semibold">{order.paymentMethod.toUpperCase()}</span></p>
-                      </div>
-                      {order.shiprocketOrderId && (
-                        <div className="bg-[#F4FAFB] p-3 rounded-xl">
-                          <p className="font-semibold text-[#1A4D3E]">Shipment Info</p>
-                          <p className="text-sm">AWB: {order.awbCode || "Assigning..."}</p>
+                      ))}
+                    </div>
+
+                    {/* Total + Tracking ID */}
+                    <div className="flex flex-wrap justify-between items-center mt-4 gap-3">
+                      <p className="font-bold text-xl text-[#18606D]">Total: ₹{order.totalAmount}</p>
+                      {order.trackingId && (
+                        <div className="text-sm text-[#64748B]">
+                          Tracking ID: <span className="font-medium text-[#18606D]">{order.trackingId}</span>
                         </div>
                       )}
-                      {/* Order Progress */}
-                      <div>
-                        <p className="font-semibold text-[#1A4D3E] mb-2">Order Progress</p>
-                        <div className="flex justify-between">
-                          {["Order Placed", "Pickup Scheduled", "Picked Up", "In Transit", "Out for Delivery", "Delivered"].map((step, idx) => {
-                            const isActive = idx <= getOrderProgressStep(order.shiprocketStatus);
-                            return (
-                              <div key={idx} className="flex flex-col items-center w-full">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${isActive ? "bg-gradient-to-r from-[#18606D] to-[#2A7F8F]" : "bg-gray-300"}`}>
-                                  {idx + 1}
+                    </div>
+
+                    {/* Expand button */}
+                    <button
+                      onClick={() => toggleOrderExpand(order._id)}
+                      className="mt-4 flex items-center gap-2 text-[#18606D] font-semibold hover:text-[#2A7F8F] transition"
+                    >
+                      {expandedOrder[order._id] ? <FaChevronUp /> : <FaChevronDown />}
+                      {expandedOrder[order._id] ? "Hide Details" : "View Details"}
+                    </button>
+
+                    {/* Expanded details */}
+                    {expandedOrder[order._id] && (
+                      <div className="mt-4 pt-4 border-t border-[#D9EEF2] space-y-3">
+                        <div className="flex items-start gap-3">
+                          <FaMapMarkerAlt className="text-[#18606D] mt-1" />
+                          <div>
+                            <p className="font-semibold text-[#1A4D3E]">Delivery Address</p>
+                            <p className="text-sm text-[#64748B]">
+                              {order.shippingAddress.fullName}, {order.shippingAddress.addressLine1},{" "}
+                              {order.shippingAddress.city}, {order.shippingAddress.state} -{" "}
+                              {order.shippingAddress.pincode}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <FaMoneyBill className="text-[#18606D]" />
+                          <p className="text-[#1A4D3E]">Payment: <span className="font-semibold">{order.paymentMethod.toUpperCase()}</span></p>
+                        </div>
+                        {order.trackingId && (
+                          <div className="bg-[#F4FAFB] p-3 rounded-xl">
+                            <p className="font-semibold text-[#1A4D3E]">Tracking Information</p>
+                            <p className="text-sm">Tracking ID: {order.trackingId}</p>
+                            <p className="text-sm">Courier: {order.courierName || "Not assigned"}</p>
+                          </div>
+                        )}
+                        {/* Order Progress */}
+                        <div>
+                          <p className="font-semibold text-[#1A4D3E] mb-2">Order Progress</p>
+                          <div className="flex justify-between flex-wrap gap-2">
+                            {progressSteps.map((step, idx) => {
+                              const isActive = idx <= currentStep && currentStep !== -1;
+                              const isCancelled = order.customStatus === "cancelled";
+                              return (
+                                <div key={idx} className="flex flex-col items-center w-full max-w-[60px] sm:max-w-none sm:w-auto">
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                                    isActive && !isCancelled ? "bg-gradient-to-r from-[#18606D] to-[#2A7F8F]" : "bg-gray-300"
+                                  }`}>
+                                    {idx + 1}
+                                  </div>
+                                  <p className="text-[10px] sm:text-xs mt-1 text-center text-[#64748B]">{step}</p>
                                 </div>
-                                <p className="text-xs mt-1 text-center text-[#64748B]">{step}</p>
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
+                          {order.customStatus === "cancelled" && (
+                            <p className="text-red-600 text-sm mt-2">This order has been cancelled.</p>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  )}
-                </motion.div>
-              ))
+                    )}
+                  </motion.div>
+                );
+              })
             )}
           </div>
         )}
 
-        {/* Consultations Section */}
+        {/* Consultations Section (unchanged) */}
         {activeTab === "consultations" && (
           <div className="space-y-6">
             {bookings.length === 0 ? (
@@ -301,6 +290,7 @@ const Dashboard = () => {
                   animate={{ opacity: 1, y: 0 }}
                   className="bg-white rounded-2xl shadow-md border border-[#D9EEF2] p-6"
                 >
+                
                   {/* Header */}
                   <div className="flex flex-wrap justify-between items-center gap-2">
                     <div>
@@ -371,15 +361,13 @@ const Dashboard = () => {
                       )}
                     </div>
                   )}
+                
                 </motion.div>
               ))
             )}
           </div>
         )}
       </div>
-
-      {/* Tracking Modal */}
-      {trackId && <OrderTracking shipmentId={trackId} onClose={() => setTrackId(null)} />}
     </div>
   );
 };

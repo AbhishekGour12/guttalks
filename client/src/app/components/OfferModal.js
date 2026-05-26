@@ -64,15 +64,19 @@ const OfferModal = ({ onBookNow, onClose, setShowScheduleModal }) => {
   }, [saveClosedUntil, onClose]);
 
   const handleBookNowClick = useCallback(() => {
-    try {
-      localStorage.setItem(CONVERTED_KEY, 'true');
-      localStorage.removeItem(CLOSED_UNTIL_KEY);
-    } catch (error) {}
-    setIsOpen(false);
-    if (autoCloseTimeoutRef.current) clearTimeout(autoCloseTimeoutRef.current);
-    if (setShowScheduleModal) setShowScheduleModal(true);
-    if (onBookNow) onBookNow();
-  }, [onBookNow, setShowScheduleModal]);
+  try {
+    localStorage.setItem(CONVERTED_KEY, 'true');
+    // Store pending booking info
+    localStorage.setItem('pendingBooking', 'true');
+    localStorage.setItem('pendingProduct', 'Consultation');
+    localStorage.setItem('pendingPrice', '99');
+  } catch (error) {}
+  setIsOpen(false);
+  if (setShowScheduleModal) {
+    setShowScheduleModal(true);
+  }
+  if (onBookNow) onBookNow();
+}, [onBookNow, setShowScheduleModal]);
 
   // Auto‑close after 2 minutes (120000 ms)
   useEffect(() => {
