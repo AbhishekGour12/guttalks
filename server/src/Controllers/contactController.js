@@ -1,5 +1,5 @@
 // controllers/contactController.js
-import Contact from "../models/Contact.js";
+import Contact from "../Models/Contact.js";
 
 import sendEmail from "../services/email.js";
 
