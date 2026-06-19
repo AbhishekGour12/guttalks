@@ -7,11 +7,11 @@ dotenv.config();
 const createAdmin = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    const existingAdmin = await Admin.findOne({ email: 'help@guttalks.in' });
+    const existingAdmin = await Admin.findOne({ email: 'admin@guttalks.in' });
     if (!existingAdmin) {
       const admin = new Admin({
         name: 'Super Admin',
-        email: 'help@guttalks.in',
+        email: 'admin@guttalks.in',
         password: 'Admin@123' // Change this!
       });
       await admin.save();
