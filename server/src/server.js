@@ -22,6 +22,7 @@ import adminRoutes from "./Routes/adminRoutes.js";
 import dashboardRoutes from "./Routes/dashboardRoutes.js";
 import {Server} from "socket.io";
 import http from "http";
+import { createAdmin } from "./services/createAdmin.js";
 
 const app = express();
 dotenv.config();
@@ -71,6 +72,7 @@ io.on('connection', (socket) => {
 });
 
 
+createAdmin()
 app.use(
   "/uploads/products",
   express.static(path.join(process.cwd(), "uploads", "products"))
