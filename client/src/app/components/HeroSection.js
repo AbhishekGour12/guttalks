@@ -51,21 +51,21 @@ useEffect(() => {
   const slides = [
     {
       id: 1,
-      image: "https://images.unsplash.com/photo-1576091160399-112ba8c25d7d?w=800&h=600&fit=crop",
+      image: "/herocraousel_1.png",
       title: "Expert Consultation",
       description: "One-on-one with gut health specialists",
       badge: "Doctor-led Session"
     },
     {
       id: 2,
-      image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&h=600&fit=crop",
+      image: "/herocraousel_2.png",
       title: "Personalized Reports",
       description: "AI-powered gut health analysis",
       badge: "Digital Report"
     },
     {
       id: 3,
-      image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&h=600&fit=crop",
+      image: "/herocraousel_3.png",
       title: "Transform Your Life",
       description: "Join 10,000+ happy clients",
       badge: "Results Guaranteed"
@@ -185,24 +185,23 @@ useEffect(() => {
               {/* Headline */}
               <motion.h1 
                 variants={fadeInUp}
-                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.2] tracking-tight mb-4 sm:mb-6"
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-6xl font-bold leading-[1.2] tracking-tight mb-4 sm:mb-6"
               >
-                <span className="text-[#0F172A]">Fix Your Gut.</span>
+                <span className="text-[#0F172A]">Rebalance Your Gut.</span>
                 <br />
                 <span className="bg-gradient-to-r from-[#18606D] via-[#2A7F8F] to-[#18606D] bg-clip-text text-transparent">
-                  Transform Your Health.
+                 Reclaim Your Vitality.
                 </span>
               </motion.h1>
 
               {/* Subheading */}
               <motion.p 
                 variants={fadeInUp}
-                className="text-sm sm:text-base lg:text-lg xl:text-xl text-[#64748B] leading-relaxed mb-6 sm:mb-8 max-w-xl"
+                className="text-sm sm:text-base lg:text-lg xl:text-lg text-[#64748B] leading-relaxed mb-6 sm:mb-8 max-w-xl"
               >
-                Struggling with bloating, acidity, IBS, or skin issues? Start with a <span className="line-through text-[#94A3B8]">₹399</span>{' '}
-                <span className="font-bold text-[#18606D]">₹99</span> expert consultation and get personalized gut health solutions.
-              </motion.p>
-
+                Struggling with persistent bloating, acidity, chronic IBS, or inflammation-linked skin issues? Take your first step toward lasting relief with an expert gut health consultation for just <span className="line-through text-[#94A3B8]">₹399 </span>{' '}<span className="font-bold text-[#18606D]">₹99</span>
+                 <p> Get a personalised roadmap tailored specifically to your unique digestive profile.</p>
+             </motion.p>
               {/* Bullet Points */}
               <motion.div 
                 variants={staggerChildren}
@@ -290,7 +289,7 @@ useEffect(() => {
                   <FaLeaf className="text-[#2A7F8F] text-base sm:text-lg lg:text-xl" />
                   <div>
                     <p className="font-semibold text-[#0F172A] text-sm sm:text-base">100% Natural</p>
-                    <p className="text-[10px] sm:text-xs text-[#64748B]">Approach</p>
+                    <p className="text-[10px] sm:text-xs text-[#64748B]">Evidence Based</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 bg-[#CFE8EC]/30 px-2 py-1 rounded-full">
@@ -327,7 +326,7 @@ useEffect(() => {
                           alt={slides[currentSlide].title}
                           fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 45vw"
-                          className="object-cover"
+                          className="object-fit"
                           priority={currentSlide === 0}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />

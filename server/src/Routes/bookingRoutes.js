@@ -1,5 +1,5 @@
 import express from 'express';
-import { initiateBooking, submitMCQs, getMCQs, updateBooking, getMyBookings, getAllBookings, updateBookingStatus, rescheduleBooking } from '../Controllers/bookingController.js';
+import { initiateBooking, submitMCQs, getMCQs, updateBooking, getMyBookings, getAllBookings, updateBookingStatus, rescheduleBooking, getBookingDetailsForInvoice } from '../Controllers/bookingController.js';
 import { authMiddleware} from '../Middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -12,4 +12,5 @@ router.put('/update/:bookingId', authMiddleware, updateBooking);
 router.get('/admin/all', getAllBookings);
 router.put('/admin/:id/status', updateBookingStatus);
 router.put('/admin/reschedule/:bookingId',  rescheduleBooking);
+router.get('/invoice-details/:bookingId', getBookingDetailsForInvoice);
 export default router;

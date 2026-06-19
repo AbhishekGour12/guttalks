@@ -23,11 +23,12 @@ export const submitRating = async (req, res) => {
       productId,
     });
    
-
+    let isUpdate = false;
     if (existingRating) {
       existingRating.rating = rating;
       existingRating.review = review;
       await existingRating.save();
+      isUpdate = true;
     } else {
       existingRating = new Rating({
         userId: req.user.id,
@@ -52,7 +53,7 @@ export const submitRating = async (req, res) => {
     });
    
     res.json({
-      message: "Rating submitted successfully",
+      message: isUpdate ? "Review updated successfully" : "Rating submitted successfully",
       rating: existingRating,
     });
   } catch (error) {
@@ -106,7 +107,7 @@ export const getProductReviews = async (req, res) => {
     const reviews = await Rating.find()
       .populate({
         path: "userId",
-        select: "username"
+        select: "username name "
       })
       .sort({ createdAt: -1 });
 

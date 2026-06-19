@@ -76,9 +76,12 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
     }
     const dataToExport = filteredOrders.map((order) => {
       const user = order.userId || {};
-      const address = order.shippingAddress || {};
       const itemsString = Array.isArray(order.items)
-        ? order.items.map(i => `${i.product?.name || 'Item'} (x${i.quantity})`).join(", ")
+        ? order.items.map(i => {
+            const prodName = i.name || i.productId?.name || 'Item';
+            const variantStr = i.variant?.name ? ` (${i.variant.name})` : '';
+            return `${prodName}${variantStr} (x${i.quantity})`;
+          }).join(", ")
         : "No Items";
       return {
         "Order ID": order._id,
@@ -117,9 +120,10 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
     const items = Array.isArray(order.items) ? order.items : [];
     if (!items.length) return "No items";
     const first = items[0];
-    const name = first?.product?.name || first?.productName || "Item";
-    if (items.length === 1) return `${name} (x${first.quantity || 1})`;
-    return `${name} (x${first.quantity || 1}) + ${items.length - 1} more`;
+    const name = first?.name || first?.productId?.name || first?.productName || "Item";
+    const variantStr = first?.variant?.name ? ` (${first.variant.name})` : '';
+    if (items.length === 1) return `${name}${variantStr} (x${first.quantity || 1})`;
+    return `${name}${variantStr} (x${first.quantity || 1}) + ${items.length - 1} more`;
   };
 
   const totalItemCount = (order) => {
@@ -501,18 +505,51 @@ const OrderDetailsModal = ({ order, onClose }) => {
           </div>
 
           <div>
-            <h4 className="font-semibold text-[#1A4D3E] mb-2">Items</h4>
-            <div className="space-y-2">
-              {items.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-3 bg-[#F4FAFB] rounded-2xl px-3 py-2">
-                  <img src={item.image ? `${process.env.NEXT_PUBLIC_API}${item.image}` : "/placeholder.png"} alt={item.product?.name || "Product"} className="w-12 h-12 rounded-xl object-cover" />
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-[#1A4D3E]">{item.product?.name || "Product"}</p>
-                    <p className="text-xs text-[#64748B]">Qty: {item.quantity} × ₹{item.priceAtPurchase}</p>
+            <h4 className="font-semibold text-[#1A4D3E] mb-3">Items</h4>
+            <div className="space-y-3">
+              {items.map((item, idx) => {
+                const prodName = item.name || item.productId?.name || "Product";
+                const imgUrl = item.image
+                  ? (item.image.startsWith('http')
+                      ? item.image
+                      : `${process.env.NEXT_PUBLIC_IMAGE_URL || process.env.NEXT_PUBLIC_API || ''}${item.image}`)
+                  : "/placeholder.png";
+
+                return (
+                  <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-4 bg-[#F4FAFB] rounded-2xl p-4 border border-[#E8F4F7] hover:border-[#18606D]/30 transition-all duration-300">
+                    <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-white border border-[#D9EEF2] flex-shrink-0">
+                      <img src={imgUrl} alt={prodName} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-base font-bold text-[#1A4D3E] truncate">{prodName}</p>
+                      
+                      {/* Variant and Package Option details */}
+                      {item.variant && item.variant.name && (
+                        <div className="mt-1 flex flex-wrap gap-2 items-center">
+                          <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#E8F4F7] text-[#18606D] border border-[#D9EEF2]">
+                            {item.variant.type === 'duration' ? '⏱️ Duration: ' : item.variant.type === 'pack' ? '📦 Pack: ' : '✨ Option: '}
+                            {item.variant.name}
+                          </span>
+                          {item.variant.price && item.variant.price !== item.priceAtPurchase && (
+                            <span className="text-[11px] text-[#64748B]">
+                              (Base Option Price: ₹{item.variant.price})
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="mt-2 text-sm text-[#64748B] flex items-center gap-4 flex-wrap">
+                        <span>Quantity: <strong className="text-[#1A4D3E] font-semibold">{item.quantity}</strong></span>
+                        <span>Price per unit: <strong className="text-[#18606D] font-semibold">₹{item.priceAtPurchase?.toFixed(2)}</strong></span>
+                      </div>
+                    </div>
+                    <div className="text-right sm:text-right flex sm:flex-col justify-between sm:justify-center items-center sm:items-end border-t sm:border-t-0 pt-2 sm:pt-0 border-dashed border-[#D9EEF2] min-w-[80px]">
+                      <span className="text-xs text-[#64748B] sm:hidden">Total:</span>
+                      <div className="text-base font-extrabold text-[#18606D]">₹{(item.quantity * item.priceAtPurchase).toFixed(2)}</div>
+                    </div>
                   </div>
-                  <div className="text-sm font-semibold text-[#18606D]">₹{(item.quantity * item.priceAtPurchase).toFixed(2)}</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

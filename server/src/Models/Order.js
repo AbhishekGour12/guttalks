@@ -8,7 +8,7 @@ const orderItemSchema = new mongoose.Schema({
   priceAtPurchase: Number,
   weight: { type: Number, default: 0.5 },
   variant: {
-    type: { type: String},
+    type: { type: String },
     name: String,
     price: Number,
     originalPrice: Number
@@ -50,8 +50,8 @@ const orderSchema = new mongoose.Schema({
   trackingHistory: { type: Array, default: [] },
   // COD specific
   codFee: { type: Number, default: 0 },
-  customStatus: { 
-    type: String, 
+  customStatus: {
+    type: String,
     enum: [
       'order_placed',
       'kit_dispatched',

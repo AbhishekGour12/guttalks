@@ -5,7 +5,7 @@ import User from '../Models/User.js';
 import { createZoomMeetingLink } from '../services/zoomMeet.js';
 import crypto from 'crypto';
 import TempSlotHold from '../Models/TempSlotHold.js';
-import { sendBookingConfirmationEmail, sendRescheduleEmail } from '../utils/EmailTemplate.js';
+import { sendBookingConfirmationEmail, sendRescheduleEmail, sendBookingStatusEmail } from '../utils/EmailTemplate.js';
 
 // Helper: format phone with +91
 const formatPhone = (phone) => {
@@ -266,16 +266,33 @@ export const updateBookingStatus = async (req, res) => {
       req.params.id,
       { status },
       { new: true }
-    );
+    ).populate('userId', 'name email');
+
     if (!booking) return res.status(404).json({ error: 'Booking not found' });
+
     if (status === 'cancelled') {
-  const slot = await Slot.findOne({ date: booking.date, startTime: booking.startTime });
-  if (slot) {
-    slot.isBooked = false;
-    slot.bookingId = null;
-    await slot.save();
-  }
-}
+      const slot = await Slot.findOne({ date: booking.date, startTime: booking.startTime });
+      if (slot) {
+        slot.isBooked = false;
+        slot.bookingId = null;
+        await slot.save();
+      }
+    }
+
+    // Send status update notification email
+    const userEmail = booking.guestEmail || booking.userId?.email;
+    if (userEmail) {
+      const userName = booking.guestName || booking.userId?.name || 'Valued Customer';
+      await sendBookingStatusEmail(userEmail, {
+        bookingId: booking.bookingId,
+        date: booking.date,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        status: booking.status,
+        userName
+      });
+    }
+
     res.json({ success: true, booking });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -364,6 +381,41 @@ export const rescheduleBooking = async (req, res) => {
     res.json({ success: true, message: 'Booking rescheduled successfully', booking });
   } catch (error) {
     console.error('Reschedule error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Get booking details for invoice (public/unauthenticated access via secure bookingId token)
+export const getBookingDetailsForInvoice = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const booking = await Booking.findOne({ bookingId }).populate('userId', 'name email phone');
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    // Resolve details (prefer guest details if filled, fallback to user model)
+    const userName = booking.guestName || booking.userId?.name || 'Valued Customer';
+    const userEmail = booking.guestEmail || booking.userId?.email || '';
+    const userPhone = booking.guestPhone || booking.userId?.phone || '';
+
+    res.json({
+      success: true,
+      booking: {
+        bookingId: booking.bookingId,
+        userName,
+        userEmail,
+        userPhone,
+        date: booking.date,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        price: booking.price,
+        paymentStatus: booking.paymentStatus,
+        paymentDetails: booking.paymentDetails,
+        createdAt: booking.createdAt
+      }
+    });
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };

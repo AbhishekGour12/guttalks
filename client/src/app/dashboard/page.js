@@ -96,6 +96,17 @@ const Dashboard = () => {
     return step !== undefined ? step : -1;
   };
 
+  // ---- NEW: Booking status style helper ----
+  const getBookingStatusStyle = (status) => {
+    const styles = {
+      scheduled: "bg-blue-100 text-blue-700",
+      completed: "bg-green-100 text-green-700",
+      cancelled: "bg-red-100 text-red-700",
+      rescheduled: "bg-amber-100 text-amber-700",
+    };
+    return styles[status] || "bg-gray-100 text-gray-700";
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -268,7 +279,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Consultations Section (unchanged) */}
+        {/* Consultations Section */}
         {activeTab === "consultations" && (
           <div className="space-y-6">
             {bookings.length === 0 ? (

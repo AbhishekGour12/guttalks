@@ -85,7 +85,7 @@ export default function AdminPage() {
                 {activeTab === "products" && <ProductManagement searchTerm={searchTerm} />}
                 {activeTab === "availability" && <CallSlotManagement />}
                 {activeTab === "bookings" && <Booking />}
-                {activeTab === "orders" && <OrdersTab />}
+                {activeTab === "orders" && <OrdersTab searchTerm={searchTerm} />}
                 {activeTab === "coupon" && <CouponsTab />}
                 {activeTab === "contact" && <ContactTab />}
               </motion.div>

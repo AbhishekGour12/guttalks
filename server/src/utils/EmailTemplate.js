@@ -427,10 +427,12 @@ export const sendBookingConfirmationEmail = async (userEmail, bookingDetails) =>
       
       <!-- Meeting Link Section -->
       <div class="meet-link">
-        <strong>🔗 Your Consultation Link:</strong><br/>
-        <a href="${meetLink}" target="_blank">Join Video Consultation</a>
-        <p style="font-size: 12px; margin-top: 8px;">Click the button above to join at your scheduled time.</p>
-      </div>
+  <strong>🔗 Your Consultation Link:</strong><br/>
+  <a href="${meetLink}" target="_blank" style="color:#ffffff !important; background-color:#18606D !important; display:inline-block; padding:12px 24px; border-radius:40px; font-weight:bold; text-decoration:none; margin-top:10px;">
+    Join Video Consultation
+  </a>
+  <p style="font-size: 12px; margin-top: 8px;">Click the button above to join at your scheduled time.</p>
+</div>
       
       <p><strong>What to expect:</strong></p>
       <ul>
@@ -444,8 +446,12 @@ export const sendBookingConfirmationEmail = async (userEmail, bookingDetails) =>
       You can manage your booking from your <a href="${process.env.FRONTEND_URL}/dashboard" style="color:white;">dashboard</a>. Changes require at least 24 hours notice.</p>
       
       <div style="text-align: center; margin: 20px 0;">
-        <a href="#" class="download-btn" style="background-color: #2A7F8F;">⬇️ Download Invoice (PDF)</a>
-      </div>
+  <a href="${process.env.FRONTEND_URL}/api/invoice/${bookingId}/pdf" 
+     class="download-btn" 
+     style="background-color: #2A7F8F; color:#ffffff !important; display:inline-block; padding:8px 16px; border-radius:40px; text-decoration:none; font-size:12px; margin-top:10px;">
+     ⬇️ Download Invoice (PDF)
+  </a>
+</div>
       
       <p class="important">⚠️ For any queries regarding this invoice or your consultation, please contact us at hello@guttalks.com or +91 98765 43210.</p>
     </div>
@@ -522,6 +528,154 @@ export const sendRescheduleEmail = async (userEmail, details) => {
 </body>
 </html>
   `;
+  await sendEmail({ to: userEmail, subject, html });
+};
+
+// Send email notification on booking status change by admin
+export const sendBookingStatusEmail = async (userEmail, details) => {
+  const { bookingId, date, startTime, endTime, status, userName } = details;
+  
+  const formattedDate = new Date(date).toLocaleDateString('en-IN', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'Asia/Kolkata'
+  });
+
+  const subject = `📅 Booking Status Update - GutTalks (ID: ${bookingId})`;
+
+  // Status mapping to color and custom message
+  const statusColor = {
+    completed: '#4CAF50', // Green
+    cancelled: '#F43F5E',  // Red
+    scheduled: '#18606D',  // Teal
+    rescheduled: '#FF9800' // Orange
+  }[status] || '#18606D';
+
+  const statusText = status.toUpperCase();
+
+  let statusMessage = `Your booking status has been updated to **${statusText}**.`;
+  if (status === 'completed') {
+    statusMessage = `We hope you had a great consultation! Your session has been marked as **COMPLETED**. You can view details, recommendations, or schedule your next consultation on your dashboard.`;
+  } else if (status === 'cancelled') {
+    statusMessage = `Your scheduled consultation has been **CANCELLED**. If you have questions regarding refunds, scheduling a new slot, or any other query, please feel free to reach out to us.`;
+  }
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Status Update - GutTalks</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #1A4D3E;
+      margin: 0;
+      padding: 20px;
+      background-color: #F4FAFB;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border: 1px solid #D9EEF2;
+    }
+    .header {
+      background: linear-gradient(135deg, #18606D 0%, #2A7F8F 100%);
+      padding: 25px 20px;
+      text-align: center;
+      color: white;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    .content {
+      padding: 25px;
+    }
+    .status-badge {
+      display: inline-block;
+      background-color: ${statusColor};
+      color: white;
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-weight: bold;
+      font-size: 14px;
+      margin: 15px 0;
+      text-transform: uppercase;
+    }
+    .info-box {
+      background-color: #F4FAFB;
+      border-left: 4px solid #18606D;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+    .info-box p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    .btn {
+      display: inline-block;
+      background-color: #18606D;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 40px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+    .footer {
+      background-color: #F4FAFB;
+      padding: 15px;
+      text-align: center;
+      font-size: 12px;
+      color: #64748B;
+      border-top: 1px solid #D9EEF2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📅 Booking Status Update</h1>
+    </div>
+    <div class="content">
+      <p>Dear <strong>${userName}</strong>,</p>
+      <p>${statusMessage}</p>
+      
+      <div style="text-align: center;">
+        <span class="status-badge">${statusText}</span>
+      </div>
+
+      <div class="info-box">
+        <p><strong>📅 Consultation Slot Details:</strong></p>
+        <p><strong>Booking ID:</strong> ${bookingId}</p>
+        <p><strong>Date:</strong> ${formattedDate}</p>
+        <p><strong>Time:</strong> ${startTime} – ${endTime} IST</p>
+      </div>
+
+      <div style="text-align: center; margin-top: 25px;">
+        <a href="${process.env.FRONTEND_URL}/dashboard" class="btn" style="color:#ffffff !important;">Go to Dashboard</a>
+      </div>
+      
+      <p style="font-size: 12px; margin-top: 25px; color: #64748B;">If you have any questions, please contact us at hello@guttalks.com.</p>
+    </div>
+    <div class="footer">
+      <p>GutTalks – Your partner in digestive wellness</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
   await sendEmail({ to: userEmail, subject, html });
 };
 

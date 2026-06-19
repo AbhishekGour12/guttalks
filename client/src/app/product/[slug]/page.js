@@ -158,22 +158,36 @@ export default function ProductPage() {
   const user = useSelector((state) => state.auth.user);
   const checkLogin = useCheckLogin();
 
- // When product loads, set default selections (first option)
+  // When product loads, set default selections (first option)
   useEffect(() => {
     if (product && product.productType === 'program') {
+      let defaultDuration = null;
+      let defaultPack = null;
+
       if (product.durationOptions && product.durationOptions.length > 0) {
-        const first = product.durationOptions[0];
-        setSelectedDuration(first);
-        setSelectedVariantPrice(first.salePrice);
-        setSelectedVariantOriginalPrice(first.originalPrice);
-        setSelectedVariantLabel(first.duration);
+        defaultDuration = product.durationOptions[0];
+        setSelectedDuration(defaultDuration);
+      }
+      if (product.packOptions && product.packOptions.length > 0) {
+        defaultPack = product.packOptions[0];
+        setSelectedPack(defaultPack);
+      }
+
+      // Compute initial variant values
+      if (defaultDuration && defaultPack) {
+        setSelectedVariantPrice(defaultDuration.salePrice + defaultPack.salePrice);
+        setSelectedVariantOriginalPrice(defaultDuration.originalPrice + defaultPack.originalPrice);
+        setSelectedVariantLabel(`${defaultDuration.duration} + ${defaultPack.name}`);
+        setSelectedVariantType('both');
+      } else if (defaultDuration) {
+        setSelectedVariantPrice(defaultDuration.salePrice);
+        setSelectedVariantOriginalPrice(defaultDuration.originalPrice);
+        setSelectedVariantLabel(defaultDuration.duration);
         setSelectedVariantType('duration');
-      } else if (product.packOptions && product.packOptions.length > 0) {
-        const first = product.packOptions[0];
-        setSelectedPack(first);
-        setSelectedVariantPrice(first.salePrice);
-        setSelectedVariantOriginalPrice(first.originalPrice);
-        setSelectedVariantLabel(first.name);
+      } else if (defaultPack) {
+        setSelectedVariantPrice(defaultPack.salePrice);
+        setSelectedVariantOriginalPrice(defaultPack.originalPrice);
+        setSelectedVariantLabel(defaultPack.name);
         setSelectedVariantType('pack');
       }
     }
@@ -224,7 +238,7 @@ export default function ProductPage() {
       const ratingsData = await ProductApi.getProductRatings(productId);
       let reviewsList = Array.isArray(ratingsData) ? ratingsData : ratingsData?.reviews || [];
       setReviews(reviewsList);
-     
+      console.log(ratingsData)
 
       const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
       reviewsList.forEach((r) => {
@@ -287,14 +301,18 @@ export default function ProductPage() {
     }
     if (!rating) return toast.error("Please select rating");
     try {
-      await ProductApi.submitRating({
+      const response = await ProductApi.submitRating({
         productId: product._id,
         rating: Number(rating),
         review: reviewText,
       });
+
+      toast.success(response.message || "Review submitted successfully");
       
-      let reviewsList = Array.isArray(ratingsData) ? ratingsData : ratingsData?.reviews || [];
+      // Fetch updated reviews
+      const reviewsList = await ProductApi.getProductRatings(product._id);
       setReviews(reviewsList);
+      
       const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
       reviewsList.forEach((r) => {
         if (breakdown[r.rating] !== undefined) breakdown[r.rating] += 1;
@@ -381,16 +399,28 @@ export default function ProductPage() {
   }, []);
 // Update price when selection changes
   useEffect(() => {
-    if (selectedDuration) {
+    if (selectedDuration && selectedPack) {
+      setSelectedVariantPrice(selectedDuration.salePrice + selectedPack.salePrice);
+      setSelectedVariantOriginalPrice(selectedDuration.originalPrice + selectedPack.originalPrice);
+      setSelectedVariantLabel(`${selectedDuration.duration} + ${selectedPack.name}`);
+      setSelectedVariantType('both');
+    } else if (selectedDuration) {
       setSelectedVariantPrice(selectedDuration.salePrice);
       setSelectedVariantOriginalPrice(selectedDuration.originalPrice);
       setSelectedVariantLabel(selectedDuration.duration);
+      setSelectedVariantType('duration');
     } else if (selectedPack) {
       setSelectedVariantPrice(selectedPack.salePrice);
       setSelectedVariantOriginalPrice(selectedPack.originalPrice);
       setSelectedVariantLabel(selectedPack.name);
+      setSelectedVariantType('pack');
+    } else {
+      setSelectedVariantPrice(product?.salePrice || null);
+      setSelectedVariantOriginalPrice(product?.originalPrice || null);
+      setSelectedVariantLabel('');
+      setSelectedVariantType('');
     }
-  }, [selectedDuration, selectedPack]);
+  }, [selectedDuration, selectedPack, product]);
   if (loading) return <SkeletonLoader />;
   if (!product) return <div className="min-h-screen flex items-center justify-center">Product not found</div>;
 
@@ -848,7 +878,7 @@ export default function ProductPage() {
               {reviews.map((r) => (
                 <div key={r._id} className="border-b border-[#D9EEF2] pb-4 last:border-0">
                   <div className="flex flex-wrap justify-between items-start gap-2 mb-1">
-                    <span className="font-semibold text-[#1A4D3E] text-sm">{r.userId?.username ||r.userId?.name || "Anonymous"}</span>
+                    <span className="font-semibold text-[#1A4D3E] text-sm">{r.userId?.shippingAddress?.username ||r.userId?.name || "Anonymous"}</span>
                     <div className="flex gap-0.5">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star

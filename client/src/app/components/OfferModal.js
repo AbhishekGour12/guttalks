@@ -15,15 +15,13 @@ import { MdVerified } from 'react-icons/md';
 
 const OfferModal = ({ onBookNow, onClose, setShowScheduleModal }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300);
+  const [timeLeft, setTimeLeft] = useState(120); // starts at 120 seconds (2 mins)
   const [isMounted, setIsMounted] = useState(false);
-  const hasShownRef = useRef(false);
-  const reopenIntervalRef = useRef(null);
-  const autoCloseTimeoutRef = useRef(null);
+  const [initialDelayPassed, setInitialDelayPassed] = useState(false);
+  const intervalRef = useRef(null);
 
   // Storage keys
   const STORAGE_KEY = 'gutHealthOfferPopup';
-  const LAST_SHOWN_KEY = 'gutHealthOfferPopupLastShown';
   const CLOSED_UNTIL_KEY = 'gutHealthOfferPopupClosedUntil';
   const CONVERTED_KEY = `${STORAGE_KEY}_converted`;
 
@@ -43,99 +41,82 @@ const OfferModal = ({ onBookNow, onClose, setShowScheduleModal }) => {
     }
   }, []);
 
-  const saveShownTimestamp = useCallback(() => {
-    try {
-      localStorage.setItem(LAST_SHOWN_KEY, Date.now().toString());
-    } catch (error) {}
-  }, []);
-
   const saveClosedUntil = useCallback(() => {
     try {
-      const blockUntil = Date.now() + 5 * 60 * 1000; // 5 minutes
+      const blockUntil = Date.now() + 5 * 60 * 1000; // 5 minutes cooldown
       localStorage.setItem(CLOSED_UNTIL_KEY, blockUntil.toString());
     } catch (error) {}
   }, []);
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
-    if (autoCloseTimeoutRef.current) clearTimeout(autoCloseTimeoutRef.current);
     saveClosedUntil();
     if (onClose) onClose();
   }, [saveClosedUntil, onClose]);
 
   const handleBookNowClick = useCallback(() => {
-  try {
-    localStorage.setItem(CONVERTED_KEY, 'true');
-    // Store pending booking info
-    localStorage.setItem('pendingBooking', 'true');
-    localStorage.setItem('pendingProduct', 'Consultation');
-    localStorage.setItem('pendingPrice', '99');
-  } catch (error) {}
-  setIsOpen(false);
-  if (setShowScheduleModal) {
-    setShowScheduleModal(true);
-  }
-  if (onBookNow) onBookNow();
-}, [onBookNow, setShowScheduleModal]);
-
-  // Auto‑close after 2 minutes (120000 ms)
-  useEffect(() => {
-    if (isOpen) {
-      autoCloseTimeoutRef.current = setTimeout(() => {
-        handleClose();
-      }, 120000);
+    try {
+      localStorage.setItem(CONVERTED_KEY, 'true');
+      // Store pending booking info
+      localStorage.setItem('pendingBooking', 'true');
+      localStorage.setItem('pendingProduct', 'Consultation');
+      localStorage.setItem('pendingPrice', '99');
+    } catch (error) {}
+    setIsOpen(false);
+    if (setShowScheduleModal) {
+      setShowScheduleModal(true);
     }
-    return () => {
-      if (autoCloseTimeoutRef.current) clearTimeout(autoCloseTimeoutRef.current);
-    };
-  }, [isOpen, handleClose]);
+    if (onBookNow) onBookNow();
+  }, [onBookNow, setShowScheduleModal]);
 
-  // Countdown timer (optional, just for visual urgency)
-  useEffect(() => {
-    if (!isOpen) return;
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev <= 1 ? 0 : prev - 1));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [isOpen]);
-
-  // Show popup on mount after 2 seconds, if conditions met
+  // Set initial delay passed after 2 seconds on mount
   useEffect(() => {
     setIsMounted(true);
-    if (hasShownRef.current) return;
-
-    const showTimer = setTimeout(() => {
-      if (shouldShowPopup()) {
-        setIsOpen(true);
-        saveShownTimestamp();
-        hasShownRef.current = true;
-      }
+    const delayTimer = setTimeout(() => {
+      setInitialDelayPassed(true);
     }, 2000);
+    return () => clearTimeout(delayTimer);
+  }, []);
 
-    return () => clearTimeout(showTimer);
-  }, [shouldShowPopup, saveShownTimestamp]);
-
-  // Periodically check for showing popup (every 60 seconds) – only if not open and not in cooldown
+  // Unified interval running every 1 second
   useEffect(() => {
-    if (reopenIntervalRef.current) clearInterval(reopenIntervalRef.current);
+    if (!isMounted) return;
 
-    reopenIntervalRef.current = setInterval(() => {
-      if (isOpen) return;
+    intervalRef.current = setInterval(() => {
+      // Check conversion state
+      let hasConverted = false;
       try {
-        const hasConverted = localStorage.getItem(CONVERTED_KEY);
-        if (hasConverted === 'true') return;
-      } catch {}
-      if (shouldShowPopup() && !isOpen) {
-        setIsOpen(true);
-        saveShownTimestamp();
-        setTimeLeft(60);
+        hasConverted = localStorage.getItem(CONVERTED_KEY) === 'true';
+      } catch (e) {}
+      
+      if (hasConverted) {
+        setIsOpen(false);
+        clearInterval(intervalRef.current);
+        return;
       }
-    }, 60000);
+
+      if (isOpen) {
+        // Decrement timer
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            handleClose();
+            return 120; // reset
+          }
+          return prev - 1;
+        });
+      } else {
+        // If initial delay passed, check if we should show the modal
+        if (initialDelayPassed && shouldShowPopup()) {
+          setIsOpen(true);
+          setTimeLeft(120);
+        }
+      }
+    }, 1000);
 
     return () => {
-      if (reopenIntervalRef.current) clearInterval(reopenIntervalRef.current);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isOpen, shouldShowPopup, saveShownTimestamp]);
+  }, [isMounted, isOpen, initialDelayPassed, shouldShowPopup, handleClose]);
 
   const formatTime = (seconds) => `${seconds % 60}s`;
 
