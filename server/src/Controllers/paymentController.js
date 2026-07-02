@@ -6,8 +6,8 @@ import dotenv from "dotenv";
 import User from "../Models/User.js";
 dotenv.config()
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY || "rzp_live_T8bgEapAOWAFoo",
-  key_secret: process.env.RAZORPAY_SECRET || "pEqlJaI0dt7jN30MyhsOyd8i"
+  key_id: process.env.RAZORPAY_KEY||"rzp_live_T8bgEapAOWAFoo",
+  key_secret: process.env.RAZORPAY_SECRET||"pEqlJaI0dt7jN30MyhsOyd8i"
 });
 
 export const createOrder = async (req, res) => {
