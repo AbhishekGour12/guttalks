@@ -227,7 +227,7 @@ export const deleteProduct = async (req, res) => {
     // Delete associated images from filesystem
     if (product.imageUrls && product.imageUrls.length > 0) {
       product.imageUrls.forEach((imgPath) => {
-        const fullPath = path.join(process.cwd(), imgPath.replace("/", ""));
+        const fullPath = path.join(process.cwd(), "src", imgPath.replace("/", ""));
         if (fs.existsSync(fullPath)) {
           fs.unlinkSync(fullPath);
         }
@@ -256,7 +256,7 @@ export const deleteMultipleProducts = async (req, res) => {
     for (const product of products) {
       if (product.imageUrls && product.imageUrls.length > 0) {
         product.imageUrls.forEach((imgPath) => {
-          const fullPath = path.join(process.cwd(), imgPath.replace("/", ""));
+          const fullPath = path.join(process.cwd(), "src", imgPath.replace("/", ""));
           if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
         });
       }

@@ -18,7 +18,7 @@ const router = express.Router();
 // Configure multer for image upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), 'uploads/carousel');
+    const uploadDir = path.join(process.cwd(), 'src/uploads/carousel');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }

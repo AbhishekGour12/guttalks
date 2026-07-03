@@ -109,7 +109,7 @@ export const updateCarouselSlide = async (req, res) => {
     // Update left image if new one is uploaded
     if (leftImageFile) {
       if (slide.leftImage) {
-        const oldImagePath = path.join(process.cwd(), 'public', slide.leftImage);
+        const oldImagePath = path.join(process.cwd(), 'src', slide.leftImage);
         if (fs.existsSync(oldImagePath)) {
           fs.unlinkSync(oldImagePath);
         }
@@ -120,7 +120,7 @@ export const updateCarouselSlide = async (req, res) => {
     // Update right image if new one is uploaded
     if (rightImageFile) {
       if (slide.rightImage) {
-        const oldImagePath = path.join(process.cwd(), 'public', slide.rightImage);
+        const oldImagePath = path.join(process.cwd(), 'src', slide.rightImage);
         if (fs.existsSync(oldImagePath)) {
           fs.unlinkSync(oldImagePath);
         }
@@ -131,7 +131,7 @@ export const updateCarouselSlide = async (req, res) => {
     // Update mobile image if new one is uploaded
     if (mobileImageFile) {
       if (slide.mobileImage) {
-        const oldImagePath = path.join(process.cwd(), 'public', slide.mobileImage);
+        const oldImagePath = path.join(process.cwd(), 'src', slide.mobileImage);
         if (fs.existsSync(oldImagePath)) {
           fs.unlinkSync(oldImagePath);
         }
@@ -165,7 +165,7 @@ export const deleteCarouselSlide = async (req, res) => {
     const images = [slide.leftImage, slide.rightImage, slide.mobileImage];
     images.forEach(image => {
       if (image) {
-        const imagePath = path.join(process.cwd(), 'public', image);
+        const imagePath = path.join(process.cwd(), 'src', image);
         if (fs.existsSync(imagePath)) {
           fs.unlinkSync(imagePath);
         }
