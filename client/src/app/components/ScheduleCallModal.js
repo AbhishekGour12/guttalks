@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiCalendar, FiClock, FiX, FiChevronLeft, FiChevronRight, 
   FiUser, FiMail, FiPhone, FiCheckCircle, FiCreditCard, FiLogIn,
-  FiArrowLeft
+  FiArrowLeft, FiAlertCircle
 } from 'react-icons/fi';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isSameDay, isBefore, startOfDay } from 'date-fns';
 import { availabilityAPI } from '../lib/availablity';
@@ -258,16 +258,6 @@ useEffect(() => {
           confirm_close: true,
           animation: true,
           escape: false
-        },
-        config: {
-          display: {
-            blocks: {
-              utp: { name: "UPI Apps", instruments: [{ method: 'upi' }] },
-              bank: { name: "Cards & NetBanking", instruments: [{ method: 'card' }, { method: 'netbanking' }] }
-            },
-            sequence: ['block.utp', 'block.bank'],
-            preferences: { show_default_blocks: true }
-          }
         },
         retry: { enabled: true, max_count: 3 },
         prefill: {

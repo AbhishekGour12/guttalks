@@ -353,16 +353,6 @@ useEffect(() => { fetchCart(); }, [user]);
           animation: true,
           escape: false
         },
-        config: {
-          display: {
-            blocks: {
-              utp: { name: "UPI Apps", instruments: [{ method: 'upi' }] },
-              bank: { name: "Cards & NetBanking", instruments: [{ method: 'card' }, { method: 'netbanking' }] }
-            },
-            sequence: ['block.utp', 'block.bank'],
-            preferences: { show_default_blocks: true }
-          }
-        },
         retry: { enabled: true, max_count: 3 },
         prefill: {
           name: address.fullName,

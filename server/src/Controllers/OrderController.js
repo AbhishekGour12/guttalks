@@ -1,18 +1,17 @@
 // controllers/orderController.js (partial – reuse your existing functions)
 import Order from '../Models/Order.js';
 import Cart from '../Models/Carts.js';
-import {Product} from '../Models/Product.js';
+import { Product } from '../Models/Product.js';
 import User from '../Models/User.js';
-import { createShiprocketOrder, assignAWB, trackShipment, getAWBFromOrder } from '../services/shipRocketServices.js';
 import mongoose from 'mongoose';
 import console from 'console';
 import { sendOrderStatusEmail } from '../utils/EmailTemplate.js';
 
 export const createOrder = async (req, res) => {
-  
-  
+
+
   const session = await mongoose.startSession();
-  
+
 
   try {
     session.startTransaction();
@@ -29,51 +28,51 @@ export const createOrder = async (req, res) => {
       finalAmount
     } = req.body;
     let user = null;
-if (phone) {
-  user = await User.findOne({ phone });
-}
+    if (phone) {
+      user = await User.findOne({ phone });
+    }
 
-let cartItems = [];
+    let cartItems = [];
     if (!shippingAddress) throw new Error("Shipping address required");
     if (!paymentMethod) throw new Error("Payment method required");
-     
+
     // Fetch cart
-   
-   // For guest orders (no userId)
-if (!userId) {
-  if (!items || items.length === 0) throw new Error("No items provided");
-  cartItems = items.map((item) => ({
-    product: item.product,
-    quantity: item.quantity,
-    variant: item.variant || null
-  }));
-} else {
-  // For logged-in users, fetch from cart
-  const cart = await Cart.findOne({ userId: user._id }).populate("items.product");
-  if (!cart || cart.items.length === 0) throw new Error("Your cart is empty");
-  cartItems = cart.items;
-}
-  
+
+    // For guest orders (no userId)
+    if (!userId) {
+      if (!items || items.length === 0) throw new Error("No items provided");
+      cartItems = items.map((item) => ({
+        product: item.product,
+        quantity: item.quantity,
+        variant: item.variant || null
+      }));
+    } else {
+      // For logged-in users, fetch from cart
+      const cart = await Cart.findOne({ userId: user._id }).populate("items.product");
+      if (!cart || cart.items.length === 0) throw new Error("Your cart is empty");
+      cartItems = cart.items;
+    }
+
 
     for (const item of cartItems) {
-  if (item.quantity > item.product.stock) {
-    throw new Error(
-      `${item.product.name} is out of stock`
-    );
-  }
-}
+      if (item.quantity > item.product.stock) {
+        throw new Error(
+          `${item.product.name} is out of stock`
+        );
+      }
+    }
 
-    
+
     if (!cartItems || cartItems.length === 0) throw new Error("Your cart is empty");
 
-  const subtotal = cartItems.reduce((sum, item) => {
-  const price = item.variant?.price ?? item.product.salePrice;
-  return sum + (price * item.quantity);
-}, 0);
+    const subtotal = cartItems.reduce((sum, item) => {
+      const price = item.variant?.price ?? item.product.salePrice;
+      return sum + (price * item.quantity);
+    }, 0);
 
     const totalAmount = finalAmount;
     const paymentStatus = paymentMethod === "online" ? "Paid" : "Pending";
- 
+
     // Weight
     let calculatedWeight = cartItems.reduce(
       (sum, item) => sum + (item.product.weight ?? 0.2) * item.quantity,
@@ -81,21 +80,21 @@ if (!userId) {
     );
 
     if (totalWeight > 0) calculatedWeight = totalWeight;
-   
+
     // Format items
     // Format items
-const orderItems = cartItems.map((item) => {
-  const price = item.variant?.price ?? item.product.salePrice;
-  return {
-    productId: item.product._id,
-    name: item.product.name,
-    image: item.product.imageUrls?.[0] || "",
-    priceAtPurchase: price,
-    quantity: item.quantity,
-    weight: item.product.weight || 0.2,
-    variant: item.variant || null
-  };
-});
+    const orderItems = cartItems.map((item) => {
+      const price = item.variant?.price ?? item.product.salePrice;
+      return {
+        productId: item.product._id,
+        name: item.product.name,
+        image: item.product.imageUrls?.[0] || "",
+        priceAtPurchase: price,
+        quantity: item.quantity,
+        weight: item.product.weight || 0.2,
+        variant: item.variant || null
+      };
+    });
 
     // Prepare order object for Shiprocket
     let plainOrder = {
@@ -108,32 +107,7 @@ const orderItems = cartItems.map((item) => {
       totalAmount,
       weight: calculatedWeight
     };
-    
-    // -----------------------------------
-    // CREATE ORDER IN SHIPROCKET FIRST
-    // -----------------------------------
-    try{
-    /**   
-    const shipOrder = await createShiprocketOrder(plainOrder, {
-      weight: calculatedWeight,
-      isCOD: isCODEnabled
-    });
-    
-  
-    if (!shipOrder || !shipOrder.order_id) {
-  await session.abortTransaction();
-  session.endSession();
-  return res.status(400).json({
-    success:false,
-    message:"Shiprocket order failed",
-    errors: shipOrder?.errors
-  });
-}
 
-    if (!shipOrder || !shipOrder.order_id) throw new Error("Shiprocket order failed");
-
-    const awbRes = await assignAWB(shipOrder.shipment_id);
-     **/
     // -----------------------------------
     // NOW SAVE ORDER IN DB
     // -----------------------------------
@@ -155,138 +129,132 @@ const orderItems = cartItems.map((item) => {
     });
 
     await newOrder.save({ session });
+
+    // -----------------------------------
+    // SAVE PAYMENT INFO (CASH / COD / OFFLINE)
+    // -----------------------------------
+    /** 
+    if (paymentMethod === "online") {
+      // Example: seller fixed payout
+      const payoutAmount = Math.round(totalAmount * 0.7); // 70%
     
-// -----------------------------------
-// SAVE PAYMENT INFO (CASH / COD / OFFLINE)
-// -----------------------------------
-/** 
-if (paymentMethod === "online") {
-  // Example: seller fixed payout
-  const payoutAmount = Math.round(totalAmount * 0.7); // 70%
+      await payoutToFundAccount({
+        fundAccountId: "fa_RweeY0Tr8ugGMp", // 🔒 stored fund account id
+        amount: payoutAmount,
+        referenceId: newOrder._id.toString(),
+        narration: "Seller payout for order",
+      });
+    
+      newOrder.payoutstatus = "SUCCESS";
+      
+    }
+      **/
 
-  await payoutToFundAccount({
-    fundAccountId: "fa_RweeY0Tr8ugGMp", // 🔒 stored fund account id
-    amount: payoutAmount,
-    referenceId: newOrder._id.toString(),
-    narration: "Seller payout for order",
-  });
-
-  newOrder.payoutstatus = "SUCCESS";
-  
-}
-  **/
-  
 
 
 
     // Reduce stock
-  for (const item of cartItems) {
-    const productId = item.product?._id?.toString() || item.product?.toString();
-   
-  const freshProduct = await Product.findById(productId);
+    for (const item of cartItems) {
+      const productId = item.product?._id?.toString() || item.product?.toString();
 
-  if (!freshProduct) {
-    throw new Error("Product not found");
-  }
+      const freshProduct = await Product.findById(productId);
 
-  if (item.quantity > freshProduct.stock) {
-    throw new Error(`${freshProduct.name} is out of stock`);
-  }
+      if (!freshProduct) {
+        throw new Error("Product not found");
+      }
 
-  const updated = await Product.updateOne(
-    {
-      _id: item.product._id,
-      stock: { $gte: item.quantity }
-    },
-    { $inc: { stock: -item.quantity } },
-    { session }
-  );
+      if (item.quantity > freshProduct.stock) {
+        throw new Error(`${freshProduct.name} is out of stock`);
+      }
 
-  if (updated.modifiedCount === 0) {
-    throw new Error(`Stock mismatch for ${freshProduct.name}`);
-  }
-}
+      const updated = await Product.updateOne(
+        {
+          _id: item.product._id,
+          stock: { $gte: item.quantity }
+        },
+        { $inc: { stock: -item.quantity } },
+        { session }
+      );
+
+      if (updated.modifiedCount === 0) {
+        throw new Error(`Stock mismatch for ${freshProduct.name}`);
+      }
+    }
 
     // Clear cart
-    if(userId){
-    const cart = await Cart.findOne({ userId: user._id });
-  if (cart) {
-    cart.items = [];
-    cart.totalAmount = 0;
-    await cart.save({ session });
-  }
-    
+    if (userId) {
+      const cart = await Cart.findOne({ userId: user._id });
+      if (cart) {
+        cart.items = [];
+        cart.totalAmount = 0;
+        await cart.save({ session });
+      }
+
     }
 
     await session.commitTransaction();
-   
-try {
-  // Determine recipient email
-  let userEmail = null;
-  if (user && user.email) {
-    userEmail = user.email;
-  } else if (shippingAddress && shippingAddress.email) {
-    userEmail = shippingAddress.email;
-  }
 
-  if (userEmail) {
-    await sendOrderStatusEmail(userEmail, {
-      orderId: newOrder._id.toString(),
-      status: "Order Placed",
-      customStatus: newOrder.customStatus,
-      items: orderItems.map(item => ({
-        product: { name: item.name },
-        quantity: item.quantity,
-        price: item.priceAtPurchase
-      })),
-      totalAmount: newOrder.totalAmount,
-      shippingAddress: newOrder.shippingAddress,
-      updatedAt: newOrder.createdAt
-    });
-  }
-} catch (emailErr) {
-  console.error("Failed to send order confirmation email:", emailErr.message);
-  // Do not break the order flow
-}
+    try {
+      // Determine recipient email
+      let userEmail = null;
+      if (user && user.email) {
+        userEmail = user.email;
+      } else if (shippingAddress && shippingAddress.email) {
+        userEmail = shippingAddress.email;
+      }
+
+      if (userEmail) {
+        await sendOrderStatusEmail(userEmail, {
+          orderId: newOrder._id.toString(),
+          status: "Order Placed",
+          customStatus: newOrder.customStatus,
+          items: orderItems.map(item => ({
+            product: { name: item.name },
+            quantity: item.quantity,
+            price: item.priceAtPurchase
+          })),
+          totalAmount: newOrder.totalAmount,
+          shippingAddress: newOrder.shippingAddress,
+          updatedAt: newOrder.createdAt
+        });
+      }
+    } catch (emailErr) {
+      console.error("Failed to send order confirmation email:", emailErr.message);
+      // Do not break the order flow
+    }
     session.endSession();
 
     return res.status(201).json({
       success: true,
-      message: "Order placed & synced with Shiprocket",
+      message: "Order placed successfully",
       order: newOrder,
-      
     });
-  }catch(err){
-    console.log("order", err.message)
-    throw err;
-  }
-
   } catch (error) {
-    console.log("❌ ORDER CREATE ERROR:", error.message);
+  console.log("❌ ORDER CREATE ERROR:", error.message);
 
-    await session.abortTransaction();
-    session.endSession();
-    
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Order creation failed"
-    });
-  }
-};
+  await session.abortTransaction();
+  session.endSession();
+
+  return res.status(500).json({
+    success: false,
+    message: error.message || "Order creation failed"
+  });
+}
+}
 export const getOrders = async (req, res) => {
   try {
-    
+
     const id = new mongoose.Types.ObjectId(req.user.id);
     const orders = await Order.find({ userId: id }).sort({ createdAt: -1 });
-   
+
 
     res.json({
       success: true,
       count: orders.length,
       orders,
     });
-    
-    
+
+
   } catch (error) {
     res.status(500).json({
       message: "Error fetching orders",
@@ -328,84 +296,75 @@ export const getOrderById = async (req, res) => {
   }
 };
 
-const mapShiprocketStatus = (code) => {
+const mapCustomStatusToTracking = (customStatus) => {
   const map = {
-    17: "Pickup Scheduled",
-    18: "Picked Up",
-    19: "Out for Pickup",
-    20: "In Transit",
-    21: "Out for Delivery",
-    22: "Delivered",
-    23: "RTO Initiated",
-    24: "RTO Delivered"
+    order_placed: "Order Placed",
+    kit_dispatched: "Kit Dispatched",
+    kit_delivered: "Kit Delivered",
+    pickup_requested: "Pickup Requested",
+    pickup_initiated: "Pickup Initiated",
+    sample_picked_up: "Sample Picked Up",
+    sample_received: "Sample Received",
+    qc_passed: "QC Passed",
+    completed: "Delivered",
+    cancelled: "Canceled"
   };
-
-  return map[code] || "Processing";
+  return map[customStatus] || "Processing";
 };
-
 
 export const trackUserOrder = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { shipmentId: shiprocketOrderId } = req.params;
+    const { shipmentId } = req.params; // shipmentId in route acts as orderId/trackId
 
-    // 1️⃣ Find order
+    // Find order by ID or custom ID field
     const order = await Order.findOne({
-      shiprocketOrderId,
+      $or: [
+        { _id: mongoose.isValidObjectId(shipmentId) ? new mongoose.Types.ObjectId(shipmentId) : null },
+        { shiprocketOrderId: shipmentId }
+      ],
       userId
     });
 
-    if (!order)
+    if (!order) {
       return res.status(404).json({ message: "Order not found" });
-
-    // 2️⃣ Get AWB (DB → Shiprocket)
-    
-
-   
-      const shipments = await getAWBFromOrder(shiprocketOrderId);
-    
-
-      const awb = shipments.awb;
-
-      order.awbCode = awb; // ✅ correct field
-    
-
-    // 3️⃣ Track shipment
-    const trackingRes = await trackShipment(awb);
-    
-    const tracking = trackingRes?.tracking_data;
-   
-  
-   
-    if (!tracking)
-      return res.status(500).json({ message: "Tracking data unavailable" });
-
-    // 4️⃣ Update order status
-    //const readableStatus = mapShiprocketStatus(tracking.shipment_status);
-
-    order.shiprocketStatus = shipments.status; // ✅ string
-    order.shiprocketStatusDate = new Date();
-    order.trackingHistory = tracking.shipment_track_activities || [];
-
-    await order.save();
-    const data = {
-       success: true,
-      orderId: order._id,
-      shiprocketOrderId,
-      awb,
-      courier: shipments.courier,
-      current_status: shipments.status,
-      shipment_status_code: tracking.shipment_status,
-      tracking_data: tracking,
-      track_url: tracking.track_url,
-      etd: tracking.track_status == 0?trackingRes.etd:shipments.etd
-
     }
-   
 
-    // 5️⃣ Send clean response
-    res.json(data)
+    const currentStatus = mapCustomStatusToTracking(order.customStatus);
 
+    // Build timeline activities based on current customStatus
+    const activities = [];
+    const date = order.customStatusUpdatedAt || order.updatedAt || order.createdAt;
+
+    activities.push({
+      activity: currentStatus,
+      location: order.shippingAddress?.city || "Hub",
+      date: date.toISOString()
+    });
+
+    // If beyond placed, add placed event
+    if (order.customStatus !== 'order_placed') {
+      activities.push({
+        activity: "Order Placed",
+        location: order.shippingAddress?.city || "System",
+        date: order.createdAt.toISOString()
+      });
+    }
+
+    const data = {
+      success: true,
+      orderId: order._id,
+      awb: order.awbCode || "N/A",
+      courier: "Local Partner / Self-Shipped",
+      current_status: currentStatus,
+      tracking_data: {
+        shipment_track_activities: activities
+      },
+      track_url: null,
+      etd: order.customStatus === 'completed' ? date.toISOString() : null
+    };
+
+    res.json(data);
   } catch (err) {
     console.error("❌ Track Order Error:", err.message);
     res.status(500).json({ message: err.message || "Tracking failed" });
@@ -415,14 +374,14 @@ export const trackUserOrder = async (req, res) => {
 export const getAllOrders = async (req, res) => {
   try {
     console.log("Fetching all orders for admin...");
-   const orders = await Order.find().sort({ createdAt: -1 }).populate("items.productId")   // product details
-  .populate("userId", "username email phone") // user details;
- 
-res.json({
-  success: true,
-  count: orders.length,
-  orders
-});
+    const orders = await Order.find().sort({ createdAt: -1 }).populate("items.productId")   // product details
+      .populate("userId", "username email phone") // user details;
+
+    res.json({
+      success: true,
+      count: orders.length,
+      orders
+    });
 
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -433,22 +392,22 @@ export const updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { customStatus } = req.body;
-    
+
     if (!customStatus) {
       return res.status(400).json({ error: 'Status is required' });
     }
-    
+
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
-    
+
     order.customStatus = customStatus;
     order.customStatusUpdatedAt = new Date();
-    
-    
+
+
     await order.save();
-     try {
+    try {
       // Get user email: either from associated user or shippingAddress
       let userEmail = null;
       if (order.userId) {
@@ -481,7 +440,7 @@ export const updateOrderStatus = async (req, res) => {
       console.error("Failed to send order status update email:", emailErr.message);
       // Do not break the API response
     }
-    
+
     res.json({ success: true, order });
   } catch (error) {
     res.status(500).json({ error: error.message });

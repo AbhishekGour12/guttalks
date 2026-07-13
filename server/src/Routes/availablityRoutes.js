@@ -10,13 +10,15 @@ import {
   getAvailableDates 
 } from '../Controllers/availablityController.js';
 
+import { adminAuth } from '../Middleware/adminAuth.js';
+
 const router = express.Router();
 
-router.post('/generate', generateSlots);
+router.post('/generate', adminAuth, generateSlots);
 router.get('/slots', getAvailableSlots);
-router.get('/admin/all', getAllSlots);
-router.delete('/admin/slot/:id', deleteSlot);
-router.delete('/admin/range', deleteSlotsByDateRange);
+router.get('/admin/all', adminAuth, getAllSlots);
+router.delete('/admin/slot/:id', adminAuth, deleteSlot);
+router.delete('/admin/range', adminAuth, deleteSlotsByDateRange);
 router.post('/hold-slot', holdSlot);
 router.post('/release-slot', releaseSlot);
 router.get('/available-dates', getAvailableDates);

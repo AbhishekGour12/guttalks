@@ -9,6 +9,6 @@ const tempSlotHoldSchema = new mongoose.Schema({
 });
 
 // Compound index to ensure uniqueness per slot
-tempSlotHoldSchema.index({ date: 1, startTime: 1, guestId: 1 }, { unique: true });
+tempSlotHoldSchema.index({ date: 1, startTime: 1, userId: 1 }, { unique: true });
 
 export default mongoose.model('TempSlotHold', tempSlotHoldSchema);

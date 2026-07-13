@@ -7,8 +7,8 @@ const router = express.Router();
 
 router.post('/login', adminLogin);
 router.get('/profile', adminAuth, getAdminProfile);
-router.get('/orders', getAllOrders )
-router.put('/:orderId/status', updateOrderStatus );
+router.get('/orders', adminAuth, getAllOrders);
+router.put('/:orderId/status', adminAuth, updateOrderStatus);
 
 
 export default router;

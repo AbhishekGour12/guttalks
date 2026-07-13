@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import axios from "axios";
 
 const otpStore = new Map();
+const otpRateLimitStore = new Map();
 
 
 const Login = async (req, res) => {
@@ -35,9 +36,9 @@ const Login = async (req, res) => {
         // 2. Find or Create User
         // If user doesn't exist, this is their "Signup"
         let user = await User.findOne({ phone: phone });
-        
+
         if (!user) {
-            user = new User({ 
+            user = new User({
                 phone: phone,
                 isProfileComplete: false // They will fill name/details later
             });
@@ -46,16 +47,16 @@ const Login = async (req, res) => {
 
         // 3. Generate JWT
         const token = jwt.sign(
-            { id: user._id, role: "user" }, 
+            { id: user._id, role: "user" },
             process.env.JWT_SECRET
         );
 
-        res.status(200).json({ 
+        res.status(200).json({
             success: true,
-            message: "Login successful", 
-            token, 
-            data: user 
-        }); 
+            message: "Login successful",
+            token,
+            data: user
+        });
 
     } catch (error) {
         console.error("Auth Error:", error.message);
@@ -63,40 +64,46 @@ const Login = async (req, res) => {
     }
 };
 
-const requestotp = async( req, res) =>{
+const requestotp = async (req, res) => {
     const phone = req.params.phone;
-   
-  
-   
-    try{
-        
-    if (!phone) {
-        return res.status(400).json({ success: false, message: 'Invalid phone number format. Must be E.164 (+CCNNNNNNNNN).' });
-    }
-    const otp = Math.floor(100000 + Math.random() * 900000);
 
-    // 2️⃣ Store OTP temporarily (5 mins expiry)
-    otpStore.set(phone, { otp, expiresAt: Date.now() + 2 * 60 * 1000 });
-    
-     // Country code (91)
-const countryCode = phone.substring(1, 3);
+    try {
 
-// Mobile number
-const mobile = phone.substring(3);
-    // 3️⃣ Send SMS via CPaaS API
-    const response = await axios.get (`https://cpaas.socialteaser.com/restapi/request.php?authkey=6aa45940ce7d45f2&mobile=${mobile}&country_code=${countryCode}&sid=29289&name=Twinkle&otp=${otp}` );
-      
-       // const result = await User.findOneAndUpdate({phone: phone.email}, {otp: otp});
-       // console.log(result)
-      
-       return res.status(200).json({ 
-            success: true, 
+        if (!phone) {
+            return res.status(400).json({ success: false, message: 'Invalid phone number format. Must be E.164 (+CCNNNNNNNNN).' });
+        }
+
+        const now = Date.now();
+        const lastRequest = otpRateLimitStore.get(phone);
+        if (lastRequest && now - lastRequest < 60000) { // 1 minute limit
+            return res.status(429).json({ success: false, message: "Too many OTP requests. Please wait 1 minute." });
+        }
+        otpRateLimitStore.set(phone, now);
+        const otp = Math.floor(100000 + Math.random() * 900000);
+
+        // 2️⃣ Store OTP temporarily (5 mins expiry)
+        otpStore.set(phone, { otp, expiresAt: Date.now() + 2 * 60 * 1000 });
+
+        // Country code (91)
+        const countryCode = phone.substring(1, 3);
+
+        // Mobile number
+        const mobile = phone.substring(3);
+        // 3️⃣ Send SMS via CPaaS API
+        const cpaasAuthKey = process.env.CPAAS_API_KEY
+        const response = await axios.get(`https://cpaas.socialteaser.com/restapi/request.php?authkey=${cpaasAuthKey}&mobile=${mobile}&country_code=${countryCode}&sid=29289&name=Twinkle&otp=${otp}`);
+
+        // const result = await User.findOneAndUpdate({phone: phone.email}, {otp: otp});
+        // console.log(result)
+
+        return res.status(200).json({
+            success: true,
             message: 'Verification request sent.',
-           
+
             // WARNING: Do NOT send the Verification SID back to the client. The Twilio Verify API handles the binding automatically.
         });
-        
-    }catch(err){
+
+    } catch (err) {
         console.log(err.message)
         //console.error("E
         // rror sending OTP:", err.message);
@@ -106,18 +113,26 @@ const mobile = phone.substring(3);
 
 }
 
-const userProfile = async (req, res) =>{
+const userProfile = async (req, res) => {
     try {
         const token = req.params.token;
-        
-        let user = jwt.decode(token);
-       
-        const result = await User.findById(user.id);
-      
+        if (!token) {
+            return res.status(400).json({ message: "Token is required" });
+        }
+
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET);
+        } catch (err) {
+            return res.status(401).json({ message: "Invalid or expired token" });
+        }
+
+        const result = await User.findById(decoded.id);
+
         if (!result) {
             return res.status(404).json({ message: "User not found" });
         }
-        res.status(200).json({ message: "User profile retrieved successfully", data: result});
+        res.status(200).json({ message: "User profile retrieved successfully", data: result });
     } catch (error) {
         console.error("Error retrieving user profile:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -125,7 +140,7 @@ const userProfile = async (req, res) =>{
 }
 
 
-const deleteUser = async(req, res) =>{
+const deleteUser = async (req, res) => {
     try {
         const userId = req.user.id;
         const user = await User.findById(userId);
@@ -140,27 +155,27 @@ const deleteUser = async(req, res) =>{
     }
 };
 
-const user  = async(req, res) =>{
+const user = async (req, res) => {
     const phone = req.params.phone;
-   
-   const formattedPhone = phone.startsWith("+") ? phone : `+91${phone}`;
-   
-   
-    try{
-        const existingUser = await User.findOne({phone: formattedPhone});
-        
-        if(!existingUser){
-            return res.status(200).json({success: false, message: "User not found with this contact"});
+
+    const formattedPhone = phone.startsWith("+") ? phone : `+91${phone}`;
+
+
+    try {
+        const existingUser = await User.findOne({ phone: formattedPhone });
+
+        if (!existingUser) {
+            return res.status(200).json({ success: false, message: "User not found with this contact" });
         }
-        else{
-            return res.status(200).json({success: true, message: "User not found with this contact"});
+        else {
+            return res.status(200).json({ success: true, message: "User not found with this contact" });
 
         }
-        
-    }catch(err){
+
+    } catch (err) {
         console.error("Error finding user:", err);
         res.status(500).json({ message: "Internal server error" });
     }
 
 }
-export {Login, requestotp, userProfile, deleteUser, user};
+export { Login, requestotp, userProfile, deleteUser, user };

@@ -9,7 +9,7 @@ const bookingSchema = new mongoose.Schema({
   date: { type: Date, required: true },
   startTime: { type: String, required: true },
   endTime: { type: String, required: true },
-  slotId: { type: mongoose.Schema.Types.ObjectId, ref: 'Availability' },
+  slotId: { type: mongoose.Schema.Types.ObjectId, ref: 'Slot' },
   price: { type: Number, default: 249 },
   paymentStatus: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
   paymentDetails: Object,

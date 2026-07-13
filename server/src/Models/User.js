@@ -16,7 +16,13 @@ const consultationInfoSchema = new mongoose.Schema({
   email: { type: String },
   phone: { type: String },
   lastBookingDate: { type: Date },
-  totalConsultations: { type: Number, default: 0 }
+  totalConsultations: { type: Number, default: 0 },
+  bookingId: { type: String },
+  date: { type: Date },
+  startTime: { type: String },
+  expertName: { type: String },
+  meetLink: { type: String },
+  status: { type: String }
 }, { _id: false });
 
 const UserSchema = new mongoose.Schema({

@@ -16,7 +16,7 @@ export const getDashboardStats = async (req, res) => {
     const orders = await Order.find({});
     const totalRevenue = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
     const totalOrders = orders.length;
-    const pendingOrders = orders.filter(o => o.shiprocketStatus !== 'Delivered' && o.shiprocketStatus !== 'Cancelled').length;
+        const pendingOrders = orders.filter(o => o.customStatus !== 'completed' && o.customStatus !== 'cancelled').length;
     
     // Consultations (bookings)
     const consultations = await Booking.find({});
@@ -68,11 +68,11 @@ export const getDashboardStats = async (req, res) => {
     
     // Order status distribution
     const orderStatusCounts = {
-      delivered: await Order.countDocuments({ shiprocketStatus: 'Delivered' }),
-      inTransit: await Order.countDocuments({ shiprocketStatus: { $in: ['In Transit', 'Shipped', 'Out for Delivery'] } }),
-      pending: await Order.countDocuments({ shiprocketStatus: { $nin: ['Delivered', 'Cancelled', 'RTO'] } }),
-      cancelled: await Order.countDocuments({ shiprocketStatus: 'Cancelled' }),
-      rto: await Order.countDocuments({ shiprocketStatus: 'RTO' })
+      delivered: await Order.countDocuments({ customStatus: 'completed' }),
+      inTransit: await Order.countDocuments({ customStatus: { $in: ['kit_dispatched', 'pickup_initiated', 'sample_picked_up'] } }),
+      pending: await Order.countDocuments({ customStatus: { $nin: ['completed', 'cancelled'] } }),
+      cancelled: await Order.countDocuments({ customStatus: 'cancelled' }),
+      rto: await Order.countDocuments({ customStatus: 'rto' })
     };
     
     // Conversion rate (percentage of users who placed at least one order)

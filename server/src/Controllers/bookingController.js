@@ -90,6 +90,7 @@ export const initiateBooking = async (req, res) => {
       date: startOfDay,
       startTime,
       endTime,
+      slotId: slot._id,
       price,
       paymentStatus: 'paid',
       paymentDetails,

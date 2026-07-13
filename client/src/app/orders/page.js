@@ -69,28 +69,24 @@ const MyOrdersPage = () => {
     const s = normalizeStatus(status);
     if (s === "order placed") return 0;
     if (s === "pickup scheduled") return 1;
-    if (s === "picked up") return 2;
+    if (s === "picked up" || s === "sample picked up") return 2;
     if (s === "in transit") return 3;
     if (s === "out for delivery") return 4;
     if (s === "delivered") return 5;
-    if (s === "undelivered") return 6;
-    if (s === "pickup generated") return 1;
-    if (s === "pickup completed") return 2;
-    if (s.includes("rto")) return 7;
     return 0;
   };
 
   const mapStatusForUser = (status = "") => {
     const s = normalizeStatus(status);
     if (["order placed", "processing"].includes(s)) return "Order Placed";
-    if (["pickup scheduled"].includes(s)) return "Pickup Scheduled";
-    if (["out for pickup", "picked up", "pickup completed"].includes(s)) return "Picked Up";
-    if (["shipped", "in transit", "reached at hub", "departed hub"].includes(s)) return "In Transit";
+    if (["pickup scheduled", "pickup requested", "pickup initiated"].includes(s)) return "Pickup Scheduled";
+    if (["out for pickup", "picked up", "pickup completed", "sample picked up"].includes(s)) return "Picked Up";
+    if (["shipped", "in transit", "reached at hub", "departed hub", "kit dispatched", "kit delivered", "sample received", "qc passed"].includes(s)) return "In Transit";
     if (["out for delivery"].includes(s)) return "Out for Delivery";
-    if (["delivered"].includes(s)) return "Delivered";
+    if (["delivered", "completed"].includes(s)) return "Delivered";
     if (["undelivered"].includes(s)) return "In Transit";
     if (["pickup generated"].includes(s)) return "Pickup scheduled";
-    if (s === "canceled") return "Canceled";
+    if (s === "canceled" || s === "cancelled") return "Canceled";
     if (s.includes("rto")) return "Returned";
     return "Processing";
   };
@@ -111,8 +107,8 @@ const MyOrdersPage = () => {
         <div className="space-y-6">
           {[...orders]
             .sort((a, b) => {
-              const aCanceled = isCanceledOrder(a.shiprocketStatus);
-              const bCanceled = isCanceledOrder(b.shiprocketStatus);
+              const aCanceled = isCanceledOrder(a.customStatus);
+              const bCanceled = isCanceledOrder(b.customStatus);
               if (aCanceled && !bCanceled) return 1;
               if (!aCanceled && bCanceled) return -1;
               return new Date(b.createdAt) - new Date(a.createdAt);
@@ -136,10 +132,10 @@ const MyOrdersPage = () => {
                   </div>
                   <span
                     className={`px-3 py-1 rounded-xl text-sm font-semibold ${getStatusStyle(
-                      mapStatusForUser(order.shiprocketStatus)
+                      mapStatusForUser(order.customStatus)
                     )}`}
                   >
-                    {mapStatusForUser(order.shiprocketStatus)}
+                    {mapStatusForUser(order.customStatus)}
                   </span>
                 </div>
 
@@ -167,19 +163,12 @@ const MyOrdersPage = () => {
                 {/* Total + Track */}
                 <div className="flex justify-between items-center mt-5 flex-wrap gap-3">
                   <p className="font-bold text-xl text-[#18606D]">Total: ₹{order.totalAmount}</p>
-                  {order.shiprocketOrderId ? (
+                  {!isCanceledOrder(order.customStatus) && (
                     <button
-                      onClick={() => setTrackId(order.shiprocketOrderId)}
+                      onClick={() => setTrackId(order._id)}
                       className="px-4 py-2 bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white rounded-xl flex items-center gap-2 shadow hover:shadow-lg transition"
                     >
                       <FaTruck /> Track Order
-                    </button>
-                  ) : (
-                    <button
-                      disabled
-                      className="px-4 py-2 bg-gray-200 text-gray-500 rounded-xl flex items-center gap-2 cursor-not-allowed"
-                    >
-                      <FaTruck /> Creating Shipment...
                     </button>
                   )}
                 </div>
@@ -196,7 +185,7 @@ const MyOrdersPage = () => {
                 {/* Expanded area */}
                 {expanded[order._id] && (
                   <div className="mt-5 border-t border-[#D9EEF2] pt-4 space-y-4">
-                    {isCanceledOrder(order.shiprocketStatus) && (
+                    {isCanceledOrder(order.customStatus) && (
                       <div className="bg-red-50 border border-red-200 p-4 rounded-xl text-sm text-red-700">
                         <p className="font-semibold">Order Canceled</p>
                         <p>For refund related queries, please contact us.</p>
@@ -224,18 +213,6 @@ const MyOrdersPage = () => {
                       </p>
                     </div>
 
-                    {/* Shipment Info */}
-                    {order.shiprocketOrderId && (
-                      <div className="bg-[#F4FAFB] p-4 rounded-xl border border-[#D9EEF2]">
-                        <p className="font-semibold text-[#1A4D3E]">Shipment Info</p>
-                        <p className="text-sm text-[#64748B]">Order ID: {order.shiprocketOrderId}</p>
-                        <p className="text-sm text-[#64748B]">Shipment ID: {order.shiprocketShipmentId}</p>
-                        <p className="text-sm text-[#64748B]">
-                          AWB: <span className="font-semibold text-[#18606D]">{order.awbCode || "Assigning..."}</span>
-                        </p>
-                      </div>
-                    )}
-
                     {/* Order Progress Timeline */}
                     <div className="mt-3">
                       <p className="font-semibold text-[#1A4D3E] mb-3">Order Progress</p>
@@ -248,7 +225,7 @@ const MyOrdersPage = () => {
                           "Out for Delivery",
                           "Delivered"
                         ].map((step, index) => {
-                          const isActive = index <= getProgressStep(mapStatusForUser(order.shiprocketStatus));
+                          const isActive = index <= getProgressStep(mapStatusForUser(order.customStatus));
                           return (
                             <div key={index} className="flex flex-col items-center w-full">
                               <div
