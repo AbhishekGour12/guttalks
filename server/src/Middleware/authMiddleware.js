@@ -20,6 +20,14 @@ export const authMiddleware = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
   
+    // Validate decoded.id format to avoid Mongoose CastError across protected routes
+    if (!decoded.id || typeof decoded.id !== "string" || !/^[0-9a-fA-F]{24}$/.test(decoded.id)) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token payload structure",
+      });
+    }
+
     req.user = decoded;
 
     next(); // ✅ this will now work properly

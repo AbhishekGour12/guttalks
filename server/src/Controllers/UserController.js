@@ -127,6 +127,11 @@ const userProfile = async (req, res) => {
             return res.status(401).json({ message: "Invalid or expired token" });
         }
 
+        // Validate decoded.id format to avoid Mongoose CastError (e.g. from local storage collisions)
+        if (!decoded.id || typeof decoded.id !== "string" || !/^[0-9a-fA-F]{24}$/.test(decoded.id)) {
+            return res.status(401).json({ message: "Invalid token payload structure" });
+        }
+
         const result = await User.findById(decoded.id);
 
         if (!result) {

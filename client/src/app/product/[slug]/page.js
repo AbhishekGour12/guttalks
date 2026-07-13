@@ -78,13 +78,12 @@ const StarRating = ({ rating, reviewCount, size = 16 }) => (
         <Star
           key={star}
           size={size}
-          className={`${
-            star <= Math.floor(rating)
+          className={`${star <= Math.floor(rating)
               ? "fill-amber-400 text-amber-400"
               : star <= rating
-              ? "fill-amber-400/50 text-amber-400"
-              : "text-gray-300"
-          }`}
+                ? "fill-amber-400/50 text-amber-400"
+                : "text-gray-300"
+            }`}
         />
       ))}
     </div>
@@ -256,10 +255,10 @@ export default function ProductPage() {
       const likesRes = await axios.get(`${process.env.NEXT_PUBLIC_API}/api/user-interests/likeCount/${productId}`);
       console.log("Likes count response:", likesRes.data);
       setLikesCount(likesRes.data.count || 0);
-      
+
     } catch (err) {
       console.error("Error fetching product data:", err.message);
-     
+
     } finally {
       setLoading(false);
     }
@@ -308,11 +307,11 @@ export default function ProductPage() {
       });
 
       toast.success(response.message || "Review submitted successfully");
-      
+
       // Fetch updated reviews
       const reviewsList = await ProductApi.getProductRatings(product._id);
       setReviews(reviewsList);
-      
+
       const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
       reviewsList.forEach((r) => {
         if (breakdown[r.rating] !== undefined) breakdown[r.rating] += 1;
@@ -332,7 +331,7 @@ export default function ProductPage() {
   // cart / buy / share etc.
   // ------------------------------------------------------------------
   const buyNow = () => {
-    window.Tawk_API.hideWidget();
+
     if (!product) return;
     if (!isConsultation) {
       const variant = selectedDuration || selectedPack;
@@ -344,7 +343,7 @@ export default function ProductPage() {
       } : null;
       localStorage.setItem('selectedVariant', JSON.stringify(variantInfo));
       addToCart(product._id, quantity, variantInfo);
-    
+
     } else {
       setShowScheduleModal(true);
     }
@@ -376,7 +375,7 @@ export default function ProductPage() {
   };
 
   const HandleAddToCart = async () => {
-     window.Tawk_API.hideWidget();
+
     if (!product || isConsultation) return;
     const variant = selectedDuration || selectedPack;
     const variantInfo = variant ? {
@@ -385,7 +384,7 @@ export default function ProductPage() {
       price: selectedVariantPrice,
       originalPrice: selectedVariantOriginalPrice
     } : null;
-   await addToCart(product._id, quantity, variantInfo);
+    await addToCart(product._id, quantity, variantInfo);
     setToastMsg(`${product.name} (${selectedVariantLabel}) added to cart`);
     setTimeout(() => setToastMsg(null), 2500);
   };
@@ -397,7 +396,7 @@ export default function ProductPage() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-// Update price when selection changes
+  // Update price when selection changes
   useEffect(() => {
     if (selectedDuration && selectedPack) {
       setSelectedVariantPrice(selectedDuration.salePrice + selectedPack.salePrice);
@@ -443,11 +442,10 @@ export default function ProductPage() {
               <button
                 key={idx}
                 onClick={() => setSelected(opt)}
-                className={`relative p-3 rounded-xl border-2 transition-all text-left min-w-[140px] ${
-                  isSelected
+                className={`relative p-3 rounded-xl border-2 transition-all text-left min-w-[140px] ${isSelected
                     ? 'border-[#18606D] bg-[#F4FAFB] shadow-md'
                     : 'border-[#D9EEF2] bg-white hover:shadow'
-                }`}
+                  }`}
               >
                 {opt.label === 'Most Popular' && (
                   <span className="absolute -top-2 right-2 bg-[#18606D] text-white text-[10px] px-2 py-0.5 rounded-full">
@@ -512,11 +510,10 @@ export default function ProductPage() {
                   <button
                     key={idx}
                     onMouseOver={() => setMainImage(img)}
-                    className={`w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${
-                      mainImage === img
+                    className={`w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${mainImage === img
                         ? "border-[#18606D] shadow-md"
                         : "border-[#D9EEF2] opacity-70 hover:opacity-100"
-                    }`}
+                      }`}
                   >
                     <Image
                       src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${img}`}
@@ -672,18 +669,18 @@ export default function ProductPage() {
                 )}
               </div>
             )}
-              {!isConsultation && (
-    <>
-      {/* Render duration options if any */}
-      {product.durationOptions && product.durationOptions.length > 0 && 
-        renderOptions(product.durationOptions, 'duration', selectedDuration, setSelectedDuration, 'duration', 'salePrice', 'originalPrice')
-      }
-      {/* Render pack options if any */}
-      {product.packOptions && product.packOptions.length > 0 && 
-        renderOptions(product.packOptions, 'pack', selectedPack, setSelectedPack, 'name', 'salePrice', 'originalPrice')
-      }
-    </>
-  )}
+            {!isConsultation && (
+              <>
+                {/* Render duration options if any */}
+                {product.durationOptions && product.durationOptions.length > 0 &&
+                  renderOptions(product.durationOptions, 'duration', selectedDuration, setSelectedDuration, 'duration', 'salePrice', 'originalPrice')
+                }
+                {/* Render pack options if any */}
+                {product.packOptions && product.packOptions.length > 0 &&
+                  renderOptions(product.packOptions, 'pack', selectedPack, setSelectedPack, 'name', 'salePrice', 'originalPrice')
+                }
+              </>
+            )}
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               {isConsultation ? (
                 <button
@@ -722,32 +719,32 @@ export default function ProductPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {hasBenefits
               ? product.benefits.map((benefit, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    viewport={{ once: true }}
-                    whileHover={{ y: -5, boxShadow: "0 20px 25px -12px rgba(0,0,0,0.1)" }}
-                    className="bg-white rounded-xl p-4 shadow-md border border-[#D9EEF2] transition"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-[#E8F4F7] flex items-center justify-center mb-3 text-[#18606D]">
-                      {getBenefitIcon(benefit)}
-                    </div>
-                    <h3 className="font-bold text-[#1A4D3E] text-sm md:text-base">{benefit}</h3>
-                  </motion.div>
-                ))
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  viewport={{ once: true }}
+                  whileHover={{ y: -5, boxShadow: "0 20px 25px -12px rgba(0,0,0,0.1)" }}
+                  className="bg-white rounded-xl p-4 shadow-md border border-[#D9EEF2] transition"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#E8F4F7] flex items-center justify-center mb-3 text-[#18606D]">
+                    {getBenefitIcon(benefit)}
+                  </div>
+                  <h3 className="font-bold text-[#1A4D3E] text-sm md:text-base">{benefit}</h3>
+                </motion.div>
+              ))
               : highlights.map((h, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="bg-white rounded-xl p-4 shadow-md border border-[#D9EEF2] text-center"
-                  >
-                    <p className="text-[#18606D] font-medium text-sm">{h}</p>
-                  </motion.div>
-                ))}
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="bg-white rounded-xl p-4 shadow-md border border-[#D9EEF2] text-center"
+                >
+                  <p className="text-[#18606D] font-medium text-sm">{h}</p>
+                </motion.div>
+              ))}
           </div>
         </div>
 
@@ -897,7 +894,7 @@ export default function ProductPage() {
               {reviews.map((r) => (
                 <div key={r._id} className="border-b border-[#D9EEF2] pb-4 last:border-0">
                   <div className="flex flex-wrap justify-between items-start gap-2 mb-1">
-                    <span className="font-semibold text-[#1A4D3E] text-sm">{r.userId?.shippingAddress?.username ||r.userId?.name || "Anonymous"}</span>
+                    <span className="font-semibold text-[#1A4D3E] text-sm">{r.userId?.shippingAddress?.username || r.userId?.name || "Anonymous"}</span>
                     <div className="flex gap-0.5">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star
@@ -954,7 +951,7 @@ export default function ProductPage() {
 
       {/* Floating Action Buttons */}
       <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-40">
-       
+
         <button
           onClick={shareProduct}
           className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#18606D] text-white shadow-lg flex items-center justify-center hover:scale-110 transition transform"

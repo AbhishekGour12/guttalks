@@ -200,7 +200,7 @@ useEffect(() => {
                 className="text-sm sm:text-base lg:text-lg xl:text-lg text-[#64748B] leading-relaxed mb-6 sm:mb-8 max-w-xl"
               >
                 Struggling with persistent bloating, acidity, chronic IBS, or inflammation-linked skin issues? Take your first step toward lasting relief with an expert gut health consultation for just <span className="line-through text-[#94A3B8]">₹399 </span>{' '}<span className="font-bold text-[#18606D]">₹99</span>
-                 <p> Get a personalised roadmap tailored specifically to your unique digestive profile.</p>
+                <span className="block mt-2">Get a personalised roadmap tailored specifically to your unique digestive profile.</span>
              </motion.p>
               {/* Bullet Points */}
               <motion.div 
