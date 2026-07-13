@@ -7,8 +7,8 @@ import User from "../Models/User.js";
 dotenv.config();
 dotenv.config({ path: "./src/.env" });
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY||"rzp_live_T8bgEapAOWAFoo",
-  key_secret: process.env.RAZORPAY_SECRET||"pEqlJaI0dt7jN30MyhsOyd8i"
+  key_id: process.env.RAZORPAY_KEY||"rzp_test_S88Uv4GFz38GOf",
+  key_secret: process.env.RAZORPAY_SECRET||"4v5L6va16GgvDwVL5j8PusG3"
 });
 
 export const createOrder = async (req, res) => {
@@ -57,7 +57,7 @@ export const verifyPayment = async (req, res) => {
     }
 
     const sign = crypto
-      .createHmac("sha256", process.env.RAZORPAY_SECRET || "pEqlJaI0dt7jN30MyhsOyd8i")
+      .createHmac("sha256", process.env.RAZORPAY_SECRET || "4v5L6va16GgvDwVL5j8PusG3")
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 

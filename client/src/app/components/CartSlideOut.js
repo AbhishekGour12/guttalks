@@ -338,7 +338,7 @@ useEffect(() => { fetchCart(); }, [user]);
         phone: token
       });
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY || "rzp_live_T8bgEapAOWAFoo",
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY || "rzp_test_S88Uv4GFz38GOf",
         amount: rpOrder.amount,
         currency: "INR",
         order_id: rpOrder.id,
