@@ -20,7 +20,7 @@ import { createZoomMeetingLink } from "./services/zoomMeet.js";
 import ratingRoutes from "./Routes/ratingRoutes.js"
 import adminRoutes from "./Routes/adminRoutes.js";
 import dashboardRoutes from "./Routes/dashboardRoutes.js";
-import {Server} from "socket.io";
+import { Server } from "socket.io";
 import http from "http";
 import { createAdmin } from "./services/createAdmin.js";
 import { deletePastSlots } from "./Controllers/availablityController.js";
@@ -109,9 +109,9 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/contact", contactRoutes)
 app.use("/api/ratings", ratingRoutes)
 app.use("/api/admin/dashboard", dashboardRoutes)
-app.get("/", (req, res) =>{
-    res.send("Hello World");
+app.get("/", (req, res) => {
+  res.send("Hello World");
 })
-server.listen(process.env.PORT || 5000, () =>{
-    console.log(`Server is running on port ${process.env.PORT }`);
+server.listen(process.env.PORT || 5000, () => {
+  console.log(`Server is running on port ${process.env.PORT}`);
 })
