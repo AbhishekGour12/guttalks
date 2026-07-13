@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Admin from '../Models/Admin.js';
 import dotenv from 'dotenv';
 dotenv.config();
+dotenv.config({ path: "./src/.env" });
 
 const createAdmin = async () => {
   try {

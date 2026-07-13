@@ -4,7 +4,8 @@ import Payment from "../Models/Payment.js";
 
 import dotenv from "dotenv";
 import User from "../Models/User.js";
-dotenv.config()
+dotenv.config();
+dotenv.config({ path: "./src/.env" });
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY||"rzp_live_T8bgEapAOWAFoo",
   key_secret: process.env.RAZORPAY_SECRET||"pEqlJaI0dt7jN30MyhsOyd8i"
@@ -56,7 +57,7 @@ export const verifyPayment = async (req, res) => {
     }
 
     const sign = crypto
-      .createHmac("sha256", process.env.RAZORPAY_SECRET )
+      .createHmac("sha256", process.env.RAZORPAY_SECRET || "pEqlJaI0dt7jN30MyhsOyd8i")
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 

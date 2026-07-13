@@ -27,6 +27,7 @@ import { deletePastSlots } from "./Controllers/availablityController.js";
 
 const app = express();
 dotenv.config();
+dotenv.config({ path: "./src/.env" });
 
 const allowedOrigins = [
   "https://www.guttalks.in",

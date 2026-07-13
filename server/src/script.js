@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import MCQ from './Models/MCQ.js';
 import dotenv from 'dotenv';
 dotenv.config();
+dotenv.config({ path: "./src/.env" });
 
 const defaultMCQs = [
   { question: "How long have you been experiencing digestive issues?", options: ["Less than 1 month", "1‑6 months", "6‑12 months", "More than 1 year"], order: 1 },
