@@ -92,7 +92,7 @@ export const updateCategory = async (req, res) => {
     if (imageFile) {
       // Delete old image if exists
       if (category.image) {
-        const oldImagePath = path.join(process.cwd(), 'public', category.image);
+        const oldImagePath = path.join(process.cwd(), 'src', category.image);
         if (fs.existsSync(oldImagePath)) {
           fs.unlinkSync(oldImagePath);
         }
@@ -124,7 +124,7 @@ export const deleteCategory = async (req, res) => {
 
     // Delete image file
     if (category.image) {
-      const imagePath = path.join(process.cwd(), 'public', category.image);
+      const imagePath = path.join(process.cwd(), 'src', category.image);
       if (fs.existsSync(imagePath)) {
         fs.unlinkSync(imagePath);
       }

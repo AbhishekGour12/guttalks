@@ -577,7 +577,7 @@ useEffect(() => { fetchCart(); }, [user]);
   const unitPrice = calculateUnitFinalPrice(item);
   return (
     <div key={item._id || `${getCartItemProductId(item)}-${item.variant?.name || "default"}`} className="flex gap-3 bg-gray-100 p-3 rounded-lg mb-3">
-      <img src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${item.product.imageUrls[0]}`} className="w-20 h-20 rounded-lg object-cover" />
+      <img src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${item.product?.imageUrls?.[0] || ""}`} className="w-20 h-20 rounded-lg object-cover" />
       <div className="flex-1">
         <p className="font-semibold">{item.product.name}</p>
         {item.variant && (

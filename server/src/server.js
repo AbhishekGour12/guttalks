@@ -85,11 +85,11 @@ io.on('connection', (socket) => {
 
 app.use(
   "/uploads/products",
-  express.static(path.join(process.cwd(), "uploads", "products"))
+  express.static(path.join(process.cwd(), "src", "uploads", "products"))
 );
 app.use(
   "/uploads/carousel",
-  express.static(path.join(process.cwd(), "uploads", "carousel"))
+  express.static(path.join(process.cwd(), "src", "uploads", "carousel"))
 );
 
 app.use("/api/auth", UserRoutes);

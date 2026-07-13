@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Create upload directories with absolute path
-const uploadDir = path.join(process.cwd(), "uploads", "products");
+const uploadDir = path.join(process.cwd(), "src", "uploads", "products");
 console.log('Upload directory:', uploadDir);
 
 // Ensure directory exists
