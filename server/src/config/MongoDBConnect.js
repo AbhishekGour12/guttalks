@@ -1,7 +1,5 @@
 import mongoose from 'mongoose'
-import dotenv from 'dotenv'
-dotenv.config();
-dotenv.config({ path: "./src/.env" });
+import "./env.js";
 
 const MongoDBConnect = async () =>{
     try{

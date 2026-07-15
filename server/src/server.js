@@ -1,6 +1,6 @@
+import "./config/env.js";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 
 import MongoDBConnect from "./config/MongoDBConnect.js";
 import path from "path";
@@ -26,8 +26,6 @@ import { createAdmin } from "./services/createAdmin.js";
 import { deletePastSlots } from "./Controllers/availablityController.js";
 
 const app = express();
-dotenv.config();
-dotenv.config({ path: "./src/.env" });
 
 const allowedOrigins = [
   "https://www.guttalks.in",

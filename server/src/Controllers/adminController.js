@@ -1,9 +1,7 @@
 // controllers/adminAuthController.js
 import Admin from '../Models/Admin.js';
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-dotenv.config();
-dotenv.config({ path: "./src/.env" });
+import "../config/env.js";
 
 // Admin login
 export const adminLogin = async (req, res) => {

@@ -239,7 +239,7 @@ useEffect(() => {
       });
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY || "rzp_test_S88Uv4GFz38GOf",
+        key: rpOrder.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY || "rzp_test_S88Uv4GFz38GOf",
         amount: rpOrder.amount,
         currency: "INR",
         order_id: rpOrder.id,

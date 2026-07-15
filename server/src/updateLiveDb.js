@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
-import dotenv from "dotenv";
-dotenv.config();
-dotenv.config({ path: "./src/.env" });
+import "./config/env.js";
 
 const mongoUri = process.env.MONGO_URI || "mongodb://172.17.0.1:27017/gutstalk";
 
