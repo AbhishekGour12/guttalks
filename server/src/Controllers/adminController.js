@@ -56,3 +56,31 @@ export const getAdminProfile = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Reset admin password (inline — no email token, just verify email exists then set new password)
+export const resetAdminPassword = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+      return res.status(400).json({ error: 'Email and new password are required' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    const admin = await Admin.findOne({ email });
+    if (!admin) {
+      return res.status(404).json({ error: 'No admin account found with that email' });
+    }
+
+    // Assign and save — the pre-save hook will hash the new password
+    admin.password = newPassword;
+    await admin.save();
+
+    res.json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
