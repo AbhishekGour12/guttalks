@@ -1,91 +1,55 @@
 'use client';
 
 import { Provider, useDispatch, useSelector } from 'react-redux';
-import toast, { Toaster } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 import { store } from './store/store';
-
 import { useEffect } from 'react';
-
+import { usePathname } from 'next/navigation';
 import { authAPI } from './lib/auth';
 import { loginSuccess } from './store/features/authSlice';
 
+// Initialises user session — skipped entirely on admin routes
+function UserAuthInit() {
+  const dispatch  = useDispatch();
+  const pathname  = usePathname();
 
+  useEffect(() => {
+    // Admin has its own session — never touch user auth on admin pages
+    if (pathname.startsWith('/admin')) return;
 
-// ✅ Safe and silent user auth initialization
- function Product(){
- 
-  const dispatch = useDispatch();
-  const user = useSelector((state) => state.auth.user)
-
-  useEffect(() =>{
-    const fetchProductType = async () =>{
-      try{
-       
-        
     const token = localStorage.getItem('token');
     if (!token) return;
-   
 
     const fetchUser = async () => {
       try {
         const res = await authAPI.getProfile(token);
-     
-
-      if (res?.data) {
-  dispatch(loginSuccess(res.data));
-
-
-
+        if (res?.data) {
+          dispatch(loginSuccess(res.data));
         } else {
-          // If backend didn't send valid user, clear token
           localStorage.removeItem('token');
-          console.warn('⚠️ Invalid user response, token cleared');
-         
         }
       } catch (err) {
-        // Detect if token expired or unauthorized
         const status = err?.response?.status;
-        const backendMsg = err?.response?.data?.message;
-        const msg = backendMsg || err?.message || 'Unknown error';
-
-        // 🔹 Handle expired/invalid token
+        const msg    = err?.response?.data?.message || err?.message || '';
         if (status === 401 || msg.toLowerCase().includes('expired')) {
           localStorage.removeItem('token');
-         // console.warn('🔒 Token expired — logging out user');
-          //toast.error('Session expired. Please log in again.');
         } else {
           console.error('❌ Error fetching user profile:', msg);
         }
       }
     };
 
-       fetchUser()
-       
-   
-      }catch(err){
-        console.log(err.message)
-      }
-    }
-   fetchProductType()
-    
-  },[dispatch])
+    fetchUser();
+  }, [dispatch, pathname]);
 
-
-  return null
-
+  return null;
 }
 
-
 export function Providers({ children }) {
- 
-
   return (
     <Provider store={store}>
-      <Product  />
+      <UserAuthInit />
       {children}
-
-      
-
       <Toaster position="top-center" />
     </Provider>
   );

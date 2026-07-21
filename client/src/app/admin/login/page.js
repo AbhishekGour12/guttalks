@@ -1,44 +1,71 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaEnvelope, FaLock, FaSignInAlt, FaKey, FaArrowLeft, FaEye, FaEyeSlash } from 'react-icons/fa';
+import {
+  FaEnvelope, FaLock, FaSignInAlt,
+  FaKey, FaArrowLeft, FaEye, FaEyeSlash,
+} from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+
+const TOKEN_KEY = "adminToken";
+const INFO_KEY  = "_agi";
 
 export default function AdminLogin() {
   const router = useRouter();
 
-  // ── Login state ──────────────────────────────────────────────
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  // ── redirect if already logged in ───────────────────────────
+  useEffect(() => {
+    if (localStorage.getItem(TOKEN_KEY)) {
+      router.replace('/admin');
+    }
+  }, [router]);
 
-  // ── Forgot-password state ────────────────────────────────────
-  const [mode, setMode] = useState('login'); // 'login' | 'forgot'
-  const [fpEmail, setFpEmail] = useState('');
+  // ── login state ──────────────────────────────────────────────
+  const [email, setEmail]             = useState('');
+  const [password, setPassword]       = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading]         = useState(false);
+
+  // ── forgot-password state ────────────────────────────────────
+  const [mode, setMode]               = useState('login');
+  const [fpEmail, setFpEmail]         = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showNew, setShowNew] = useState(false);
+  const [showNew, setShowNew]         = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [fpLoading, setFpLoading] = useState(false);
+  const [fpLoading, setFpLoading]     = useState(false);
 
-  // ── Handlers ─────────────────────────────────────────────────
+  // ── handlers ─────────────────────────────────────────────────
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error('Please enter email and password');
-      return;
-    }
     setLoading(true);
     try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_API}/api/admin/login`, { email, password });
-      if (res.data.success) {
-        localStorage.setItem('adminToken', res.data.token);
-        localStorage.setItem('adminInfo', JSON.stringify(res.data.admin));
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API}/api/admin/login`,
+        { email, password }
+      );
+
+      const { success, token, admin } = res.data;
+
+      if (success && token) {
+        // Write synchronously BEFORE navigation so admin/page.js always finds it
+        window.localStorage.setItem(TOKEN_KEY, token);
+
+        // Store obfuscated info (non-critical, ignore failures)
+        try {
+          const safe = {
+            id:    admin.id    || admin._id || "",
+            name:  admin.name  || "",
+            email: admin.email || "",
+            role:  admin.role  || "admin",
+          };
+          window.localStorage.setItem(INFO_KEY, btoa(JSON.stringify(safe)));
+        } catch (_) {}
+
         toast.success('Login successful!');
-        router.push('/admin');
+        router.replace('/admin');
       } else {
         toast.error(res.data.error || 'Login failed');
       }
@@ -51,14 +78,6 @@ export default function AdminLogin() {
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    if (!fpEmail) {
-      toast.error('Please enter your email');
-      return;
-    }
-    if (!newPassword || !confirmPassword) {
-      toast.error('Please fill in both password fields');
-      return;
-    }
     if (newPassword.length < 6) {
       toast.error('Password must be at least 6 characters');
       return;
@@ -69,13 +88,12 @@ export default function AdminLogin() {
     }
     setFpLoading(true);
     try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_API}/api/admin/reset-password`, {
-        email: fpEmail,
-        newPassword,
-      });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API}/api/admin/reset-password`,
+        { email: fpEmail, newPassword }
+      );
       if (res.data.success) {
-        toast.success('Password updated! Please sign in with your new password.');
-        // Pre-fill the login form with the email and switch back
+        toast.success('Password updated! Please sign in.');
         setEmail(fpEmail);
         setPassword('');
         setFpEmail('');
@@ -90,24 +108,16 @@ export default function AdminLogin() {
     }
   };
 
-  const switchToForgot = () => {
-    setFpEmail(email); // carry email over if already typed
-    setMode('forgot');
-  };
+  const switchToForgot = () => { setFpEmail(email); setMode('forgot'); };
+  const switchToLogin  = () => { setNewPassword(''); setConfirmPassword(''); setMode('login'); };
 
-  const switchToLogin = () => {
-    setNewPassword('');
-    setConfirmPassword('');
-    setMode('login');
-  };
-
-  // ── UI ────────────────────────────────────────────────────────
+  // ── ui ────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F4FAFB] via-white to-[#E8F4F7] px-4">
       <div className="w-full max-w-md">
         <AnimatePresence mode="wait">
 
-          {/* ── LOGIN FORM ── */}
+          {/* LOGIN */}
           {mode === 'login' && (
             <motion.div
               key="login"
@@ -119,75 +129,59 @@ export default function AdminLogin() {
             >
               <div className="text-center mb-6">
                 <h1 className="text-3xl font-bold text-[#1A4D3E]">Admin Login</h1>
-                <p className="text-[#64748B] text-sm mt-1">Access the GutTalks admin panel</p>
+                <p className="text-[#64748B] text-sm mt-1">GutTalks admin panel</p>
               </div>
 
               <form onSubmit={handleLogin} className="space-y-5">
-                {/* Email */}
                 <div>
                   <label className="block text-sm font-medium text-[#1A4D3E] mb-1">Email Address</label>
                   <div className="relative">
                     <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-sm" />
                     <input
-                      type="email"
+                      type="email" required
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={e => setEmail(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border border-[#D9EEF2] rounded-xl focus:ring-2 focus:ring-[#18606D] focus:outline-none"
                       placeholder="admin@guttalks.com"
-                      required
                     />
                   </div>
                 </div>
 
-                {/* Password */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <label className="block text-sm font-medium text-[#1A4D3E]">Password</label>
-                    <button
-                      type="button"
-                      onClick={switchToForgot}
-                      className="text-xs text-[#18606D] hover:underline"
-                    >
+                    <button type="button" onClick={switchToForgot} className="text-xs text-[#18606D] hover:underline">
                       Forgot password?
                     </button>
                   </div>
                   <div className="relative">
                     <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-sm" />
                     <input
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? 'text' : 'password'} required
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={e => setPassword(e.target.value)}
                       className="w-full pl-10 pr-10 py-2 border border-[#D9EEF2] rounded-xl focus:ring-2 focus:ring-[#18606D] focus:outline-none"
                       placeholder="••••••••"
-                      required
                     />
-                    <button
-                      type="button"
+                    <button type="button" tabIndex={-1}
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#18606D]"
-                      tabIndex={-1}
-                    >
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#18606D]">
                       {showPassword ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
                     </button>
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition disabled:opacity-50"
-                >
-                  {loading ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                  ) : (
-                    <><FaSignInAlt /> Sign In</>
-                  )}
+                <button type="submit" disabled={loading}
+                  className="w-full bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition disabled:opacity-50">
+                  {loading
+                    ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                    : <><FaSignInAlt /> Sign In</>}
                 </button>
               </form>
             </motion.div>
           )}
 
-          {/* ── FORGOT / RESET PASSWORD FORM ── */}
+          {/* RESET PASSWORD */}
           {mode === 'forgot' && (
             <motion.div
               key="forgot"
@@ -206,69 +200,57 @@ export default function AdminLogin() {
               </div>
 
               <form onSubmit={handleResetPassword} className="space-y-5">
-                {/* Email */}
                 <div>
                   <label className="block text-sm font-medium text-[#1A4D3E] mb-1">Admin Email</label>
                   <div className="relative">
                     <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-sm" />
                     <input
-                      type="email"
+                      type="email" required
                       value={fpEmail}
-                      onChange={(e) => setFpEmail(e.target.value)}
+                      onChange={e => setFpEmail(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border border-[#D9EEF2] rounded-xl focus:ring-2 focus:ring-[#18606D] focus:outline-none"
                       placeholder="admin@guttalks.com"
-                      required
                     />
                   </div>
                 </div>
 
-                {/* New Password */}
                 <div>
                   <label className="block text-sm font-medium text-[#1A4D3E] mb-1">New Password</label>
                   <div className="relative">
                     <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-sm" />
                     <input
-                      type={showNew ? 'text' : 'password'}
+                      type={showNew ? 'text' : 'password'} required
                       value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
+                      onChange={e => setNewPassword(e.target.value)}
                       className="w-full pl-10 pr-10 py-2 border border-[#D9EEF2] rounded-xl focus:ring-2 focus:ring-[#18606D] focus:outline-none"
                       placeholder="Min. 6 characters"
-                      required
                     />
-                    <button
-                      type="button"
+                    <button type="button" tabIndex={-1}
                       onClick={() => setShowNew(!showNew)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#18606D]"
-                      tabIndex={-1}
-                    >
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#18606D]">
                       {showNew ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
                     </button>
                   </div>
                 </div>
 
-                {/* Confirm Password */}
                 <div>
                   <label className="block text-sm font-medium text-[#1A4D3E] mb-1">Confirm New Password</label>
                   <div className="relative">
                     <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-sm" />
                     <input
-                      type={showConfirm ? 'text' : 'password'}
+                      type={showConfirm ? 'text' : 'password'} required
                       value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onChange={e => setConfirmPassword(e.target.value)}
                       className={`w-full pl-10 pr-10 py-2 border rounded-xl focus:ring-2 focus:ring-[#18606D] focus:outline-none ${
                         confirmPassword && confirmPassword !== newPassword
                           ? 'border-red-400 bg-red-50'
                           : 'border-[#D9EEF2]'
                       }`}
                       placeholder="Re-enter new password"
-                      required
                     />
-                    <button
-                      type="button"
+                    <button type="button" tabIndex={-1}
                       onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#18606D]"
-                      tabIndex={-1}
-                    >
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#18606D]">
                       {showConfirm ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
                     </button>
                   </div>
@@ -277,24 +259,16 @@ export default function AdminLogin() {
                   )}
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={fpLoading || (confirmPassword && confirmPassword !== newPassword)}
-                  className="w-full bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition disabled:opacity-50"
-                >
-                  {fpLoading ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                  ) : (
-                    <><FaKey /> Update Password</>
-                  )}
+                <button type="submit"
+                  disabled={fpLoading || !!(confirmPassword && confirmPassword !== newPassword)}
+                  className="w-full bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition disabled:opacity-50">
+                  {fpLoading
+                    ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                    : <><FaKey /> Update Password</>}
                 </button>
 
-                {/* Back to login */}
-                <button
-                  type="button"
-                  onClick={switchToLogin}
-                  className="w-full flex items-center justify-center gap-2 text-sm text-[#64748B] hover:text-[#1A4D3E] transition"
-                >
+                <button type="button" onClick={switchToLogin}
+                  className="w-full flex items-center justify-center gap-2 text-sm text-[#64748B] hover:text-[#1A4D3E] transition">
                   <FaArrowLeft size={12} /> Back to Sign In
                 </button>
               </form>

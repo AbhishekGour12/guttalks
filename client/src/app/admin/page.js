@@ -30,10 +30,10 @@ export default function AdminPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for admin token
-    const token = localStorage.getItem('adminToken');
+    // Read directly — no abstraction that can silently return null
+    const token = window.localStorage.getItem('adminToken');
     if (!token) {
-      router.push('/admin/login');
+      router.replace('/admin/login');
       return;
     }
     setIsAuthenticated(true);
@@ -41,9 +41,9 @@ export default function AdminPage() {
   }, [router]);
 
   const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminInfo');
-    router.push('/admin/login');
+    window.localStorage.removeItem('adminToken');
+    window.localStorage.removeItem('_agi');
+    router.replace('/admin/login');
   };
 
   if (!isAuthenticated) return <PageLoader />;

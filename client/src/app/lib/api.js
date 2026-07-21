@@ -10,11 +10,23 @@ const api = axios.create({
 // Attach token in every request
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+    const isAdminRoute = window.location.pathname.startsWith("/admin");
+    const isAdminApiCall = config.url?.includes("/admin");
+
+    let token = null;
+    if (isAdminRoute || isAdminApiCall) {
+      token = localStorage.getItem("adminToken");
+    }
+
+    if (!token) {
+      token = localStorage.getItem("token");
+    }
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
   return config;
-  
 });
 
 // MAIN PART — CHECK TOKEN EXPIRY
@@ -22,7 +34,7 @@ api.interceptors.response.use(
   (response) => response,
   
   (error) => {
-    // If token expired
+    // If token expired or unauthorized
     if (error.response && error.response.status === 401) {
       const message = error.response.data?.message || "";
 
@@ -33,14 +45,27 @@ api.interceptors.response.use(
         message.includes("Token") ||
         error.response.status === 401
       ) {
-        //toast.error("Session expired. Please login again.");
+        // Detect whether we're on an admin page and redirect accordingly
+        const isAdminRoute =
+          typeof window !== "undefined" &&
+          window.location.pathname.startsWith("/admin");
 
-        // CLEAR USER + TOKEN
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        // Don't treat it as a session failure if it's the auth request itself (login/reset) failing
+        const isAuthRequest =
+          error.config?.url?.includes("/admin/login") ||
+          error.config?.url?.includes("/admin/reset-password");
 
-        // Redirect to login page
-        window.location.href = "/Login";
+        if (isAdminRoute && !isAuthRequest) {
+          // Clear admin session
+          localStorage.removeItem("adminToken");
+          localStorage.removeItem("_agi");
+          window.location.href = "/admin/login";
+        } else if (!isAdminRoute) {
+          // Clear user session
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          window.location.href = "/login";
+        }
       }
     }
 
