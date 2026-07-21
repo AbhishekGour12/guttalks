@@ -166,6 +166,22 @@ export const updateProduct = async (req, res) => {
     const existingImages = productData.existingImages ? JSON.parse(productData.existingImages) : existingProduct.imageUrls;
     const allImageUrls = [...existingImages, ...newImageUrls];
 
+    // Delete removed images from disk
+    const removedImages = productData.removedImages ? JSON.parse(productData.removedImages) : [];
+    if (removedImages.length > 0) {
+      removedImages.forEach((imgPath) => {
+        const fullPath = path.join(process.cwd(), "src", imgPath.replace(/^\//, ""));
+        try {
+          if (fs.existsSync(fullPath)) {
+            fs.unlinkSync(fullPath);
+            console.log(`🗑️ Deleted image: ${fullPath}`);
+          }
+        } catch (err) {
+          console.warn(`⚠️ Could not delete image ${fullPath}:`, err.message);
+        }
+      });
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
       {

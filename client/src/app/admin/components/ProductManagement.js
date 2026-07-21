@@ -64,6 +64,7 @@ export default function ProductManagement({ searchTerm }) {
   const [editingProduct, setEditingProduct] = useState(null);
   const [productForm, setProductForm] = useState({ ...emptyProduct });
   const [tempImageFiles, setTempImageFiles] = useState([]);
+  const [removedImageUrls, setRemovedImageUrls] = useState([]);
   const [bulkProducts, setBulkProducts] = useState([emptyBulkProduct()]);
   const [durationOptions, setDurationOptions] = useState([]);
   const [packOptions, setPackOptions] = useState([]);
@@ -87,6 +88,7 @@ export default function ProductManagement({ searchTerm }) {
   const resetForm = () => {
     setProductForm({ ...emptyProduct });
     setTempImageFiles([]);
+    setRemovedImageUrls([]);
     setDurationOptions([]);
     setPackOptions([]);
   };
@@ -105,9 +107,9 @@ export default function ProductManagement({ searchTerm }) {
       whatToExpect: product.whatToExpect || [],
       features: product.features || [],
       faqs: product.faqs || [],
-
     });
     setTempImageFiles([]);
+    setRemovedImageUrls([]);
     setShowEditModal(true);
     setDurationOptions(product.durationOptions || []);
     setPackOptions(product.packOptions || []);
@@ -159,6 +161,15 @@ export default function ProductManagement({ searchTerm }) {
     setTempImageFiles(tempImageFiles.filter((_, i) => i !== idx));
   };
 
+  // Mark an existing (saved) image for removal
+  const removeExistingImage = (url) => {
+    setRemovedImageUrls([...removedImageUrls, url]);
+    setProductForm({
+      ...productForm,
+      imageUrls: productForm.imageUrls.filter((u) => u !== url),
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -166,6 +177,13 @@ export default function ProductManagement({ searchTerm }) {
       const formData = new FormData();
       const productData = { ...productForm, durationOptions, packOptions };
       if (!productData._id) delete productData._id;
+
+      // Pass surviving existing images and removed ones so server can clean up disk
+      if (productData._id) {
+        productData.existingImages = JSON.stringify(productForm.imageUrls);
+        productData.removedImages = JSON.stringify(removedImageUrls);
+      }
+
       formData.append("product", JSON.stringify(productData));
       tempImageFiles.forEach((file) => formData.append("images", file));
 
@@ -682,25 +700,75 @@ export default function ProductManagement({ searchTerm }) {
                 {/* Images */}
                 <div>
                   <label className="block text-sm font-semibold text-[#1A4D3E] mb-2">Product Images</label>
+
+                  {/* Existing images gallery (edit mode) */}
+                  {showEditModal && productForm.imageUrls?.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-xs text-[#64748B] mb-2">Existing images — click × to remove</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {productForm.imageUrls.map((url, idx) => (
+                          <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-[#D9EEF2] group">
+                            <img
+                              src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${url}`}
+                              alt={`Product image ${idx + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeExistingImage(url)}
+                              className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-lg font-bold"
+                              title="Remove image"
+                            >
+                              <FaTimes size={14} />
+                            </button>
+                            <span className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-[9px] text-center py-0.5">
+                              Image {idx + 1}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* No existing images message in edit mode */}
+                  {showEditModal && productForm.imageUrls?.length === 0 && tempImageFiles.length === 0 && (
+                    <p className="text-xs text-amber-600 mb-2">All existing images removed. Upload new images below.</p>
+                  )}
+
+                  {/* Upload new images */}
                   <div className="border-2 border-dashed border-[#D9EEF2] rounded-xl p-4 text-center bg-[#F4FAFB]">
                     <input type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" id="productImages" />
                     <label htmlFor="productImages" className="cursor-pointer flex flex-col items-center">
                       <FaImage className="text-2xl text-[#18606D] mb-1" />
-                      <span className="text-sm text-[#18606D]">Click to upload images</span>
+                      <span className="text-sm text-[#18606D]">
+                        {showEditModal ? "Upload additional images" : "Click to upload images"}
+                      </span>
                     </label>
                   </div>
+
+                  {/* New images preview */}
                   {tempImageFiles.length > 0 && (
-                    <div className="flex gap-2 mt-3 flex-wrap">
-                      {tempImageFiles.map((file, idx) => (
-                        <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border">
-                          <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" />
-                          <button type="button" onClick={() => removeTempImage(idx)} className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-0.5 text-xs">&times;</button>
-                        </div>
-                      ))}
+                    <div className="mt-3">
+                      <p className="text-xs text-[#64748B] mb-2">New images to upload</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {tempImageFiles.map((file, idx) => (
+                          <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-[#D9EEF2] group">
+                            <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" alt="new upload preview" />
+                            <button
+                              type="button"
+                              onClick={() => removeTempImage(idx)}
+                              className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                              title="Remove"
+                            >
+                              <FaTimes size={14} />
+                            </button>
+                            <span className="absolute bottom-0 left-0 right-0 bg-green-500/70 text-white text-[9px] text-center py-0.5">
+                              New
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  )}
-                  {productForm.imageUrls?.length > 0 && !tempImageFiles.length && (
-                    <div className="text-xs text-[#64748B] mt-2">{productForm.imageUrls.length} existing image(s)</div>
                   )}
                 </div>
 
