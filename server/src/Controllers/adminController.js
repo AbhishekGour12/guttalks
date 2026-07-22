@@ -1,6 +1,8 @@
 // controllers/adminAuthController.js
 import Admin from '../Models/Admin.js';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import { sendAdminForgotPasswordEmail } from '../utils/EmailTemplate.js';
 import "../config/env.js";
 
 // Admin login
@@ -57,25 +59,59 @@ export const getAdminProfile = async (req, res) => {
   }
 };
 
-// Reset admin password (inline — no email token, just verify email exists then set new password)
-export const resetAdminPassword = async (req, res) => {
+// Forgot password: send email with reset link
+export const adminForgotPassword = async (req, res) => {
   try {
-    const { email, newPassword } = req.body;
-
-    if (!email || !newPassword) {
-      return res.status(400).json({ error: 'Email and new password are required' });
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
     }
-    if (newPassword.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
-    }
-
     const admin = await Admin.findOne({ email });
     if (!admin) {
       return res.status(404).json({ error: 'No admin account found with that email' });
     }
 
+    // Generate secure random token
+    const token = crypto.randomBytes(32).toString('hex');
+    admin.resetPasswordToken = token;
+    admin.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await admin.save();
+
+    // Send the email
+    await sendAdminForgotPasswordEmail(admin.email, token);
+
+    res.json({ success: true, message: 'Password reset link sent to your email.' });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Reset password with token validation
+export const resetAdminPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token and new password are required' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    const admin = await Admin.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!admin) {
+      return res.status(400).json({ error: 'Password reset token is invalid or has expired' });
+    }
+
     // Assign and save — the pre-save hook will hash the new password
     admin.password = newPassword;
+    admin.resetPasswordToken = undefined;
+    admin.resetPasswordExpires = undefined;
     await admin.save();
 
     res.json({ success: true, message: 'Password updated successfully' });

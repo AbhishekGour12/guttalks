@@ -31,11 +31,8 @@ export default function AdminLogin() {
   // ── forgot-password state ────────────────────────────────────
   const [mode, setMode]               = useState('login');
   const [fpEmail, setFpEmail]         = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showNew, setShowNew]         = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [fpLoading, setFpLoading]     = useState(false);
+  const [linkSent, setLinkSent]       = useState(false);
 
   // ── handlers ─────────────────────────────────────────────────
   const handleLogin = async (e) => {
@@ -76,40 +73,31 @@ export default function AdminLogin() {
     }
   };
 
-  const handleResetPassword = async (e) => {
+  const handleForgotSubmit = async (e) => {
     e.preventDefault();
-    if (newPassword.length < 6) {
-      toast.error('Password must be at least 6 characters');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast.error('Passwords do not match');
+    if (!fpEmail) {
+      toast.error('Email is required');
       return;
     }
     setFpLoading(true);
     try {
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API}/api/admin/reset-password`,
-        { email: fpEmail, newPassword }
+        `${process.env.NEXT_PUBLIC_API}/api/admin/forgot-password`,
+        { email: fpEmail }
       );
       if (res.data.success) {
-        toast.success('Password updated! Please sign in.');
-        setEmail(fpEmail);
-        setPassword('');
-        setFpEmail('');
-        setNewPassword('');
-        setConfirmPassword('');
-        setMode('login');
+        toast.success('Password reset link sent to your email.');
+        setLinkSent(true);
       }
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to reset password');
+      toast.error(err.response?.data?.error || 'Failed to send reset link');
     } finally {
       setFpLoading(false);
     }
   };
 
-  const switchToForgot = () => { setFpEmail(email); setMode('forgot'); };
-  const switchToLogin  = () => { setNewPassword(''); setConfirmPassword(''); setMode('login'); };
+  const switchToForgot = () => { setFpEmail(email); setLinkSent(false); setMode('forgot'); };
+  const switchToLogin  = () => { setMode('login'); };
 
   // ── ui ────────────────────────────────────────────────────────
   return (
@@ -195,83 +183,53 @@ export default function AdminLogin() {
                 <div className="inline-flex items-center justify-center w-12 h-12 bg-[#E8F4F7] rounded-full mb-3">
                   <FaKey className="text-[#18606D] text-xl" />
                 </div>
-                <h1 className="text-2xl font-bold text-[#1A4D3E]">Reset Password</h1>
-                <p className="text-[#64748B] text-sm mt-1">Enter your email and set a new password</p>
+                <h1 className="text-2xl font-bold text-[#1A4D3E]">Forgot Password</h1>
+                <p className="text-[#64748B] text-sm mt-1">
+                  {linkSent
+                    ? "Check your inbox for the reset link"
+                    : "Enter your email to receive a password reset link"}
+                </p>
               </div>
 
-              <form onSubmit={handleResetPassword} className="space-y-5">
-                <div>
-                  <label className="block text-sm font-medium text-[#1A4D3E] mb-1">Admin Email</label>
-                  <div className="relative">
-                    <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-sm" />
-                    <input
-                      type="email" required
-                      value={fpEmail}
-                      onChange={e => setFpEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-[#D9EEF2] rounded-xl focus:ring-2 focus:ring-[#18606D] focus:outline-none"
-                      placeholder="admin@guttalks.com"
-                    />
+              {linkSent ? (
+                <div className="space-y-6 text-center">
+                  <div className="p-4 bg-[#F4FAFB] border border-[#D9EEF2] rounded-xl text-[#1A4D3E] text-sm">
+                    We've emailed a password reset link to <strong className="break-all">{fpEmail}</strong>. Please check your inbox and follow the instructions.
                   </div>
+                  <button type="button" onClick={switchToLogin}
+                    className="w-full bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition">
+                    <FaArrowLeft /> Back to Sign In
+                  </button>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#1A4D3E] mb-1">New Password</label>
-                  <div className="relative">
-                    <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-sm" />
-                    <input
-                      type={showNew ? 'text' : 'password'} required
-                      value={newPassword}
-                      onChange={e => setNewPassword(e.target.value)}
-                      className="w-full pl-10 pr-10 py-2 border border-[#D9EEF2] rounded-xl focus:ring-2 focus:ring-[#18606D] focus:outline-none"
-                      placeholder="Min. 6 characters"
-                    />
-                    <button type="button" tabIndex={-1}
-                      onClick={() => setShowNew(!showNew)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#18606D]">
-                      {showNew ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
-                    </button>
+              ) : (
+                <form onSubmit={handleForgotSubmit} className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-[#1A4D3E] mb-1">Admin Email</label>
+                    <div className="relative">
+                      <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-sm" />
+                      <input
+                        type="email" required
+                        value={fpEmail}
+                        onChange={e => setFpEmail(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-[#D9EEF2] rounded-xl focus:ring-2 focus:ring-[#18606D] focus:outline-none"
+                        placeholder="admin@guttalks.com"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-[#1A4D3E] mb-1">Confirm New Password</label>
-                  <div className="relative">
-                    <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] text-sm" />
-                    <input
-                      type={showConfirm ? 'text' : 'password'} required
-                      value={confirmPassword}
-                      onChange={e => setConfirmPassword(e.target.value)}
-                      className={`w-full pl-10 pr-10 py-2 border rounded-xl focus:ring-2 focus:ring-[#18606D] focus:outline-none ${
-                        confirmPassword && confirmPassword !== newPassword
-                          ? 'border-red-400 bg-red-50'
-                          : 'border-[#D9EEF2]'
-                      }`}
-                      placeholder="Re-enter new password"
-                    />
-                    <button type="button" tabIndex={-1}
-                      onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#18606D]">
-                      {showConfirm ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
-                    </button>
-                  </div>
-                  {confirmPassword && confirmPassword !== newPassword && (
-                    <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
-                  )}
-                </div>
+                  <button type="submit" disabled={fpLoading}
+                    className="w-full bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition disabled:opacity-50">
+                    {fpLoading
+                      ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                      : <><FaKey /> Send Reset Link</>}
+                  </button>
 
-                <button type="submit"
-                  disabled={fpLoading || !!(confirmPassword && confirmPassword !== newPassword)}
-                  className="w-full bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition disabled:opacity-50">
-                  {fpLoading
-                    ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                    : <><FaKey /> Update Password</>}
-                </button>
-
-                <button type="button" onClick={switchToLogin}
-                  className="w-full flex items-center justify-center gap-2 text-sm text-[#64748B] hover:text-[#1A4D3E] transition">
-                  <FaArrowLeft size={12} /> Back to Sign In
-                </button>
-              </form>
+                  <button type="button" onClick={switchToLogin}
+                    className="w-full flex items-center justify-center gap-2 text-sm text-[#64748B] hover:text-[#1A4D3E] transition">
+                    <FaArrowLeft size={12} /> Back to Sign In
+                  </button>
+                </form>
+              )}
             </motion.div>
           )}
 

@@ -679,3 +679,95 @@ export const sendBookingStatusEmail = async (userEmail, details) => {
   await sendEmail({ to: userEmail, subject, html });
 };
 
+export const sendAdminForgotPasswordEmail = async (adminEmail, token) => {
+  const resetUrl = `${process.env.FRONTEND_URL}/admin/reset-password?token=${token}`;
+  const subject = `🔑 Reset Your Admin Password - GutTalks`;
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Admin Password</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #1A4D3E;
+      margin: 0;
+      padding: 20px;
+      background-color: #F4FAFB;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border: 1px solid #D9EEF2;
+    }
+    .header {
+      background: linear-gradient(135deg, #18606D 0%, #2A7F8F 100%);
+      padding: 25px 20px;
+      text-align: center;
+      color: white;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    .content {
+      padding: 25px;
+      text-align: center;
+    }
+    .btn {
+      display: inline-block;
+      background-color: #18606D;
+      color: white !important;
+      padding: 12px 28px;
+      border-radius: 40px;
+      text-decoration: none;
+      font-weight: bold;
+      margin: 20px 0;
+      box-shadow: 0 4px 10px rgba(24, 96, 109, 0.2);
+    }
+    .btn:hover {
+      background-color: #2A7F8F;
+    }
+    .footer {
+      background-color: #F4FAFB;
+      padding: 15px;
+      text-align: center;
+      font-size: 12px;
+      color: #64748B;
+      border-top: 1px solid #D9EEF2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔑 Reset Admin Password</h1>
+    </div>
+    <div class="content">
+      <p>Hello,</p>
+      <p>We received a request to reset your GutTalks Admin password. Click the button below to set a new password. This link is valid for 1 hour.</p>
+      <div style="text-align: center;">
+        <a href="${resetUrl}" class="btn" style="color:#ffffff !important;">Reset Password</a>
+      </div>
+      <p style="font-size: 12px; color: #64748B; margin-top: 20px;">If the button above does not work, copy and paste this link into your browser:</p>
+      <p style="font-size: 12px; word-break: break-all; color: #18606D;">${resetUrl}</p>
+      <p style="font-size: 12px; color: #64748B; margin-top: 20px;">If you did not request this, you can safely ignore this email.</p>
+    </div>
+    <div class="footer">
+      <p>GutTalks Admin Security Team</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+  await sendEmail({ to: adminEmail, subject, html });
+};
+
+
