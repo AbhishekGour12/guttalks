@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { authAPI } from "../lib/auth";
 import { useDispatch } from "react-redux";
-import { loginSuccess } from "../store/features/authSlice";
+import { loginSuccess, logoutSuccess } from "../store/features/authSlice";
 
 // --- Wellness/Health Premium Theme ---
 const LoginPage = () => {
@@ -365,6 +365,11 @@ const LoginPage = () => {
               {/* Guest Checkout Option */}
               <Link
                 href="/"
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  localStorage.removeItem("user");
+                  dispatch(logoutSuccess());
+                }}
                 className="block w-full py-3 text-center text-[#18606D] border border-[#D9EEF2] rounded-xl hover:bg-[#F4FAFB] hover:border-[#2A7F8F] transition-all font-medium"
               >
                 Explore as Guest
