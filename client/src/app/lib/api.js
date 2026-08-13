@@ -2,9 +2,10 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 const api = axios.create({
+  // NEXT_PUBLIC_API = http://localhost:5000 (local) or https://api.guttalks.in (prod)
   baseURL: process.env.NEXT_PUBLIC_API
-    ? `${process.env.NEXT_PUBLIC_API}/api`
-    : "https://api.guttalks.in",
+    ? `${process.env.NEXT_PUBLIC_API.replace(/\/$/, "")}/api`
+    : "https://api.guttalks.in/api",
 });
 
 // Attach token in every request

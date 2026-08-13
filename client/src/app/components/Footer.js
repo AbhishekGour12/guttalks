@@ -3,6 +3,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { FaHeart, FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaYoutube } from "react-icons/fa";
 import { FiMail, FiPhone, FiMapPin } from "react-icons/fi";
+import { CONTACT } from "../lib/guttalksContent";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -49,7 +50,7 @@ export default function Footer() {
               <span className="text-xl font-bold tracking-tight text-white">GutTalks</span>
             </div>
             <p className="text-sm text-[#CFE8EC] leading-relaxed">
-              Your trusted partner in gut health. Expert consultations, personalized plans, and a community that cares.
+              Your trusted partner for a healthier, happier gut. Personalized testing, expert consultations, and lasting digestive wellness.
             </p>
             <div className="flex space-x-3">
               {socialLinks.map((social, idx) => (
@@ -108,19 +109,19 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-3 text-sm text-[#CFE8EC]">
                 <FiMail className="flex-shrink-0 mt-0.5 text-white" size={16} />
-                <a href="mailto:hello@guttalks.com" className="hover:text-white transition-colors">
-                  hello@guttalks.com
+                <a href={`mailto:${CONTACT.email}`} className="hover:text-white transition-colors">
+                  {CONTACT.email}
                 </a>
               </li>
               <li className="flex items-start gap-3 text-sm text-[#CFE8EC]">
                 <FiPhone className="flex-shrink-0 mt-0.5 text-white" size={16} />
-                <a href="tel:+919876543210" className="hover:text-white transition-colors">
-                  +91 98765 43210
+                <a href={`tel:${CONTACT.phoneTel}`} className="hover:text-white transition-colors">
+                  {CONTACT.phoneDisplay}
                 </a>
               </li>
               <li className="flex items-start gap-3 text-sm text-[#CFE8EC]">
                 <FiMapPin className="flex-shrink-0 mt-0.5 text-white" size={16} />
-                <span>123 Gut Health Street, Wellness City, IN 560001</span>
+                <span>{CONTACT.address}<br />{CONTACT.hours}</span>
               </li>
             </ul>
             {/* Small trust badge */}

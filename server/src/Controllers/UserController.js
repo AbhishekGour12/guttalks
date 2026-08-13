@@ -1,6 +1,6 @@
 import User from "../Models/User.js";
 import jwt from "jsonwebtoken";
-import axios from "axios";
+import { sendWhatsAppOtp } from "../services/otpDelivery.js";
 
 const otpStore = new Map();
 const otpRateLimitStore = new Map();
@@ -65,53 +65,48 @@ const Login = async (req, res) => {
 };
 
 const requestotp = async (req, res) => {
-    const phone = req.params.phone;
+    // + in URL may arrive encoded; normalize to digits with country code
+    let phone = decodeURIComponent(req.params.phone || "").replace(/\s/g, "");
+    if (phone && !phone.startsWith("+")) {
+        phone = phone.startsWith("91") && phone.length >= 12 ? `+${phone}` : `+91${phone}`;
+    }
+
+    console.log("========== requestotp HIT ==========", phone);
 
     try {
-
-        if (!phone) {
+        if (!phone || phone.replace(/\D/g, "").length < 10) {
             return res.status(400).json({ success: false, message: 'Invalid phone number format. Must be E.164 (+CCNNNNNNNNN).' });
         }
 
         const now = Date.now();
         const lastRequest = otpRateLimitStore.get(phone);
-        if (lastRequest && now - lastRequest < 60000) { // 1 minute limit
+        if (lastRequest && now - lastRequest < 60000) {
             return res.status(429).json({ success: false, message: "Too many OTP requests. Please wait 1 minute." });
         }
         otpRateLimitStore.set(phone, now);
+
         const otp = Math.floor(100000 + Math.random() * 900000);
+        otpStore.set(phone, { otp, expiresAt: Date.now() + 10 * 60 * 1000 });
 
-        // 2️⃣ Store OTP temporarily (5 mins expiry)
-        otpStore.set(phone, { otp, expiresAt: Date.now() + 2 * 60 * 1000 });
-
-        // Country code (91)
-        const countryCode = phone.substring(1, 3);
-
-        // Mobile number
-        const mobile = phone.substring(3);
-        // 3️⃣ Send SMS via CPaaS API
-        const cpaasAuthKey = process.env.CPAAS_API_KEY
-        const response = await axios.get(`https://cpaas.socialteaser.com/restapi/request.php?authkey=${cpaasAuthKey}&mobile=${mobile}&country_code=${countryCode}&sid=29289&name=Twinkle&otp=${otp}`);
-
-        // const result = await User.findOneAndUpdate({phone: phone.email}, {otp: otp});
-        // console.log(result)
+        console.log("Sending WhatsApp OTP via Gupshup to", phone);
+        const gupshupRes = await sendWhatsAppOtp(phone, otp);
+        console.log("Gupshup OTP response:", JSON.stringify(gupshupRes));
 
         return res.status(200).json({
             success: true,
-            message: 'Verification request sent.',
-
-            // WARNING: Do NOT send the Verification SID back to the client. The Twilio Verify API handles the binding automatically.
+            message: "OTP sent on WhatsApp.",
+            channel: "whatsapp",
         });
-
     } catch (err) {
-        console.log(err.message)
-        //console.error("E
-        // rror sending OTP:", err.message);
-        res.status(500).json({ message: "Internal server error" });
+        const details = err?.response?.data || err.message;
+        console.error("requestotp WhatsApp error:", details);
+        res.status(500).json({
+            success: false,
+            message: "Failed to send WhatsApp OTP. Please try again.",
+            error: typeof details === "string" ? details : details?.message || "Gupshup error",
+        });
     }
-
-
-}
+};
 
 const userProfile = async (req, res) => {
     try {

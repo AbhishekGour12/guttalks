@@ -52,23 +52,23 @@ useEffect(() => {
     {
       id: 1,
       image: "/herocraousel_1.png",
-      title: "Expert Consultation",
-      description: "One-on-one with gut health specialists",
-      badge: "Doctor-led Session"
+      title: "Understand Your Inner World",
+      description: "GutMap Complete™ — advanced at-home microbiome testing with expert insights.",
+      badge: "GutMap Complete"
     },
     {
       id: 2,
       image: "/herocraousel_2.png",
-      title: "Personalized Reports",
-      description: "AI-powered gut health analysis",
-      badge: "Digital Report"
+      title: "Personalized Gut Care Starts Here",
+      description: "Root Rx Session — science, insights, and a roadmap built around you.",
+      badge: "Root Rx · ₹99"
     },
     {
       id: 3,
       image: "/herocraousel_3.png",
-      title: "Transform Your Life",
-      description: "Join 10,000+ happy clients",
-      badge: "Results Guaranteed"
+      title: "Every Gut is Unique",
+      description: "Test, personalize, and thrive with science-backed solutions designed for you.",
+      badge: "Your Gut Journey"
     }
   ];
 
@@ -117,9 +117,9 @@ useEffect(() => {
   ];
 
   const bulletPoints = [
-    { icon: FaUserMd, text: "Doctor-backed Recommendations", description: "Verified medical practitioners" },
-    { icon: GiFruitBowl, text: "Personalized Gut Analysis", description: "Tailored to your unique profile" },
-    { icon: FaChartLine, text: "Proven Results", description: "Visible improvements in 30 days" }
+    { icon: FaUserMd, text: "Expert-Led Care", description: "One-on-one with certified gut health specialists" },
+    { icon: GiFruitBowl, text: "Personalized for Your Microbiome", description: "Testing, nutrition & probiotics tailored to you" },
+    { icon: FaChartLine, text: "Lasting Digestive Wellness", description: "Root-cause plans—not quick fixes" }
   ];
 
   return (
@@ -187,10 +187,10 @@ useEffect(() => {
                 variants={fadeInUp}
                 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-6xl font-bold leading-[1.2] tracking-tight mb-4 sm:mb-6"
               >
-                <span className="text-[#0F172A]">Rebalance Your Gut.</span>
+                <span className="text-[#0F172A]">Science. Insights.</span>
                 <br />
                 <span className="bg-gradient-to-r from-[#18606D] via-[#2A7F8F] to-[#18606D] bg-clip-text text-transparent">
-                 Reclaim Your Vitality.
+                  Better You.
                 </span>
               </motion.h1>
 
@@ -199,8 +199,8 @@ useEffect(() => {
                 variants={fadeInUp}
                 className="text-sm sm:text-base lg:text-lg xl:text-lg text-[#64748B] leading-relaxed mb-6 sm:mb-8 max-w-xl"
               >
-                Struggling with persistent bloating, acidity, chronic IBS, or inflammation-linked skin issues? Take your first step toward lasting relief with an expert gut health consultation for just <span className="line-through text-[#94A3B8]">₹399 </span>{' '}<span className="font-bold text-[#18606D]">₹99</span>
-                <span className="block mt-2">Get a personalised roadmap tailored specifically to your unique digestive profile.</span>
+                Bloating, irregular digestion, and fatigue often mean your gut needs personalized attention. Start with a GutTalks Root Rx Session for just <span className="line-through text-[#94A3B8]">₹399</span>{' '}<span className="font-bold text-[#18606D]">₹99</span>
+                <span className="block mt-2">Get clarity on your symptoms and a personalized nutrition & lifestyle roadmap from certified gut health experts.</span>
              </motion.p>
               {/* Bullet Points */}
               <motion.div 
@@ -521,7 +521,7 @@ useEffect(() => {
 
         {/* No extra spacer – the sticky CTA overlays the content */}
       </section>
-      <ScheduleCallModal isOpen={showScheduleModal} onClose={() => setShowScheduleModal(false)} productName="Special Consultation" productPrice={399} />
+      <ScheduleCallModal isOpen={showScheduleModal} onClose={() => setShowScheduleModal(false)} productName="GutTalks Root Rx Session" productPrice={99} />
     </>
   );
 };

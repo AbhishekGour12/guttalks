@@ -9,6 +9,7 @@ import ServicesSection from "./components/ServicesSection";
 import CallNowSection from "./components/CallNowSection";
 import OfferModal from "./components/OfferModal";
 import Product from "./components/Product";
+import ProgramCardSlider from "./components/ProgramCardSlider";
 import ScheduleCallModal from "./components/ScheduleCallModal";
 import Testimonial from "./components/Testimonial";
 import Banners from "./components/Banners";
@@ -33,7 +34,10 @@ export default function Home() {
     <>
       <HeroSection />
       <Banners/>
-      <Product />
+      <ProgramCardSlider />
+      <div id="products">
+        <Product />
+      </div>
       <ElfsightGoogleReviews/>
       <Testimonial/>
       <InsightsSection />
@@ -50,7 +54,7 @@ export default function Home() {
       <ScheduleCallModal 
         isOpen={showScheduleModal} 
         onClose={() => setShowScheduleModal(false)} 
-        productName="Special Consultation" 
+        productName="GutTalks Root Rx Session" 
         productPrice={99}
       />
     </>

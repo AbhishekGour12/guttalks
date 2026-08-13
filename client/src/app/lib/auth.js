@@ -48,10 +48,11 @@ export const authAPI ={
     },
     requestotp: async (phone) =>{
         try{
-            const response = await api.put(`/auth/requestotp/${phone}`);
+            // Encode +91... so Express receives full phone (otherwise + becomes space)
+            const response = await api.put(`/auth/requestotp/${encodeURIComponent(phone)}`);
             return response.data
         }catch (error){
-            const errorMessage = error.response?.data?.message || 'Failed to send OTP. please try again.';
+            const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to send OTP. please try again.';
             throw new Error (errorMessage);
         }
     },
@@ -60,7 +61,7 @@ export const authAPI ={
             const response = await api.post(`/auth/verifyotp`, data);
             return response.data
         }catch (error){
-            const errorMessage = error.response?.data?.message || 'Failed to send OTP. please try again.';
+            const errorMessage = error.response?.data?.message || 'Failed to verify OTP. please try again.';
             throw new Error (errorMessage);
         }
     },

@@ -7,10 +7,27 @@ import { motion } from "framer-motion";
 import { Star, Clock, User, ShoppingCart, Calendar, Filter, Search } from "lucide-react";
 import { ProductApi } from "../lib/ProductApi";
 
+const LOCAL_IMAGE_FALLBACKS = [
+  { match: /gut blueprint/i, src: "/program-blueprint.png" },
+  { match: /rychbiome/i, src: "/program-rychbiome.png" },
+  { match: /gutmap|microbiome test/i, src: "/program-gutmap.png" },
+  { match: /root rx/i, src: "/program-rootrx.png" },
+  { match: /rebalance|journey/i, src: "/program-rebalance.png" },
+];
+
+const getProductImage = (product) => {
+  if (product.imageUrls?.[0]) {
+    return `${process.env.NEXT_PUBLIC_IMAGE_URL}${product.imageUrls[0]}`;
+  }
+  const local = LOCAL_IMAGE_FALLBACKS.find((f) => f.match.test(product.name || ""));
+  return local?.src || null;
+};
+
 // Product Card Component
 const ProductCard = ({ product }) => {
   const isConsultation = product.productType === "consultation";
   const discount = Math.round(((product.originalPrice - product.salePrice) / product.originalPrice) * 100);
+  const imageSrc = getProductImage(product);
   
   return (
     <Link href={`/product/${product.slug}`}>
@@ -21,9 +38,9 @@ const ProductCard = ({ product }) => {
       >
         {/* Image */}
         <div className="relative h-48 overflow-hidden bg-[#F4FAFB] flex-shrink-0">
-          {product.imageUrls?.[0] ? (
+          {imageSrc ? (
             <Image
-              src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${product.imageUrls[0]}`}
+              src={imageSrc}
               alt={product.name}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -132,9 +149,9 @@ export default function Product() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-[#0F172A]">Our Gut Health Solutions</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-[#0F172A]">Shop Programs & Consultations</h1>
           <p className="text-[#64748B] mt-2 max-w-2xl mx-auto">
-            Choose from expert consultations or comprehensive program kits to heal your gut naturally
+            From Root Rx sessions to Gut Blueprint, GutMap testing, RychBiome probiotics, and Rebalance journeys—choose what fits your gut.
           </p>
         </div>
 
