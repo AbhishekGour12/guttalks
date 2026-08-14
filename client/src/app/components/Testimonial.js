@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Quote, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { getApiBaseUrl } from "../lib/api";
 
 const REVIEWS_PER_SLIDE = 3;
 
@@ -15,7 +16,7 @@ export default function Testimonial() {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API;
+        const apiUrl = getApiBaseUrl();
         const res = await axios.get(`${apiUrl}/api/ratings/reviews`);
         setReviews(res.data.reviews || []);
       } catch (err) {

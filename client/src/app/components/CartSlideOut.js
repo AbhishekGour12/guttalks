@@ -13,7 +13,7 @@ import { ProductApi } from "../lib/ProductApi";
 import { paymentAPI } from "../lib/payment";
 import { orderAPI } from "../lib/order";
 import { useRouter } from "next/navigation";
-import { getImageUrl } from "../lib/api";
+import { getImageUrl, getApiBaseUrl } from "../lib/api";
 import axios from "axios";
 
 const CartSlideOut = () => {
@@ -413,7 +413,7 @@ useEffect(() => { fetchCart(); }, [user]);
         items: mappedCart,
         userId: user ? true : false,
       };
-      const apiBaseUrl = (process.env.NEXT_PUBLIC_API || "https://api.guttalks.in").replace(/\/$/, "");
+      const apiBaseUrl = getApiBaseUrl();
       const order = await axios.post(`${apiBaseUrl}/api/order`, formData);
       toast.success("Order Placed!");
       await clearCart();

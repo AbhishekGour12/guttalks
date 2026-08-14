@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaLock, FaKey, FaArrowLeft, FaEye, FaEyeSlash, FaCheckCircle } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { getApiBaseUrl } from '../../lib/api';
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -36,8 +37,9 @@ function ResetPasswordForm() {
 
     setLoading(true);
     try {
+      const apiBaseUrl = getApiBaseUrl();
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API}/api/admin/reset-password`,
+        `${apiBaseUrl}/api/admin/reset-password`,
         { token, newPassword }
       );
       if (res.data.success) {

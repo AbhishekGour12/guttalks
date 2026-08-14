@@ -1,11 +1,21 @@
 import axios from "axios";
 import toast from "react-hot-toast";
 
+export const getApiBaseUrl = () => {
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    // If running on production hostname (not local development)
+    if (host !== "localhost" && host !== "127.0.0.1") {
+      if (!process.env.NEXT_PUBLIC_API || process.env.NEXT_PUBLIC_API.includes("localhost")) {
+        return "https://api.guttalks.in";
+      }
+    }
+  }
+  return (process.env.NEXT_PUBLIC_API || "https://api.guttalks.in").replace(/\/$/, "");
+};
+
 const api = axios.create({
-  // NEXT_PUBLIC_API = http://localhost:5000 (local) or https://api.guttalks.in (prod)
-  baseURL: process.env.NEXT_PUBLIC_API
-    ? `${process.env.NEXT_PUBLIC_API.replace(/\/$/, "")}/api`
-    : "https://api.guttalks.in/api",
+  baseURL: `${getApiBaseUrl()}/api`,
 });
 
 export const getImageUrl = (path) => {
@@ -17,7 +27,7 @@ export const getImageUrl = (path) => {
   }
   // Backend uploaded files (/uploads/... or uploads/...)
   if (path.startsWith("/uploads/") || path.startsWith("uploads/")) {
-    const backendUrl = (process.env.NEXT_PUBLIC_IMAGE_URL || process.env.NEXT_PUBLIC_API || "https://api.guttalks.in").replace(/\/$/, "");
+    const backendUrl = getApiBaseUrl();
     const cleanPath = path.startsWith("/") ? path : `/${path}`;
     return `${backendUrl}${cleanPath}`;
   }
@@ -25,10 +35,10 @@ export const getImageUrl = (path) => {
   return path.startsWith("/") ? path : `/${path}`;
 };
 
-
-// Attach token in every request
+// Attach token & dynamic baseURL in every request
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
+    config.baseURL = `${getApiBaseUrl()}/api`;
     const isAdminRoute = window.location.pathname.startsWith("/admin");
     const isAdminApiCall = config.url?.includes("/admin");
 

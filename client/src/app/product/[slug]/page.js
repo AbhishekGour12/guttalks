@@ -43,7 +43,7 @@ import { ProductApi } from "../../lib/ProductApi";
 import { useCart } from "../../context/CartContext";
 import ScheduleCallModal from "../../components/ScheduleCallModal";
 import { useSelector } from "react-redux";
-import { getImageUrl } from "../../lib/api";
+import { getImageUrl, getApiBaseUrl } from "../../lib/api";
 import toast from "react-hot-toast";
 import useCheckLogin from "../../useCheckLogin"; // adjust path if needed
 import axios from "axios";
@@ -252,7 +252,8 @@ export default function ProductPage() {
       } else {
         setIsLiked(false);
       }
-      const likesRes = await axios.get(`${process.env.NEXT_PUBLIC_API}/api/user-interests/likeCount/${productId}`);
+      const apiBaseUrl = getApiBaseUrl();
+      const likesRes = await axios.get(`${apiBaseUrl}/api/user-interests/likeCount/${productId}`);
       setLikesCount(likesRes.data.count || 0);
 
     } catch (err) {

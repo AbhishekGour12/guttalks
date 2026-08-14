@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { getApiBaseUrl } from '../../lib/api';
 
 const TOKEN_KEY = "adminToken";
 const INFO_KEY  = "_agi";
@@ -39,8 +40,9 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     try {
+      const apiBaseUrl = getApiBaseUrl();
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API}/api/admin/login`,
+        `${apiBaseUrl}/api/admin/login`,
         { email, password }
       );
 
@@ -81,8 +83,9 @@ export default function AdminLogin() {
     }
     setFpLoading(true);
     try {
+      const apiBaseUrl = getApiBaseUrl();
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API}/api/admin/forgot-password`,
+        `${apiBaseUrl}/api/admin/forgot-password`,
         { email: fpEmail }
       );
       if (res.data.success) {
