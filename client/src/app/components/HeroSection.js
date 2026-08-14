@@ -22,6 +22,8 @@ import { MdVerified } from 'react-icons/md';
 import { GiStomach, GiHealthNormal, GiFruitBowl } from 'react-icons/gi';
 import Image from 'next/image';
 import ScheduleCallModal from './ScheduleCallModal';
+import { heroApi } from '../lib/heroApi';
+import { getImageUrl } from '../lib/api';
 
 const HeroSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -48,29 +50,49 @@ useEffect(() => {
     setBubbles(generated);
   }, []);
 
-  const slides = [
+  const defaultSlides = [
     {
       id: 1,
       image: "/herocraousel_1.png",
       title: "Understand Your Inner World",
       description: "GutMap Complete™ — advanced at-home microbiome testing with expert insights.",
-      badge: "GutMap Complete"
+      badge: "GutMap Complete",
+      originalPrice: 399,
+      offerPrice: 99,
     },
     {
       id: 2,
       image: "/herocraousel_2.png",
       title: "Personalized Gut Care Starts Here",
       description: "Root Rx Session — science, insights, and a roadmap built around you.",
-      badge: "Root Rx · ₹99"
+      badge: "Root Rx · ₹99",
+      originalPrice: 399,
+      offerPrice: 99,
     },
     {
       id: 3,
       image: "/herocraousel_3.png",
       title: "Every Gut is Unique",
       description: "Test, personalize, and thrive with science-backed solutions designed for you.",
-      badge: "Your Gut Journey"
+      badge: "Your Gut Journey",
+      originalPrice: 399,
+      offerPrice: 99,
     }
   ];
+
+  const [dynamicSlides, setDynamicSlides] = useState([]);
+
+  useEffect(() => {
+    heroApi.getPublicSlides()
+      .then(res => {
+        if (res.success && res.slides?.length > 0) {
+          setDynamicSlides(res.slides);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const slides = dynamicSlides.length > 0 ? dynamicSlides : defaultSlides;
 
   useEffect(() => {
     let interval;
@@ -321,13 +343,11 @@ useEffect(() => {
                         transition={{ duration: 0.5, ease: "easeInOut" }}
                         className="absolute inset-0"
                       >
-                        <Image
-                          src={slides[currentSlide].image}
-                          alt={slides[currentSlide].title}
-                          fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 45vw"
-                          className="object-fit"
-                          priority={currentSlide === 0}
+                        <img
+                          src={getImageUrl(slides[currentSlide]?.image)}
+                          alt={slides[currentSlide]?.title || "Hero slide"}
+                          className="w-full h-full object-cover"
+                          onError={(e) => { e.target.src = "/herocraousel_1.png"; }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                         
@@ -358,8 +378,12 @@ useEffect(() => {
                       <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl px-2 py-1 sm:px-3 sm:py-1.5 shadow-lg">
                         <div className="flex items-center gap-1">
                           <FaTag className="text-white text-[8px] sm:text-[10px]" />
-                          <span className="text-white text-[8px] sm:text-[10px] line-through opacity-80">₹399</span>
-                          <span className="text-white text-xs sm:text-sm font-bold">₹99</span>
+                          <span className="text-white text-[8px] sm:text-[10px] line-through opacity-80">
+                            ₹{slides[currentSlide]?.originalPrice || 399}
+                          </span>
+                          <span className="text-white text-xs sm:text-sm font-bold">
+                            ₹{slides[currentSlide]?.offerPrice || 99}
+                          </span>
                           <span className="text-white text-[7px] sm:text-[8px]">OFFER</span>
                         </div>
                       </div>

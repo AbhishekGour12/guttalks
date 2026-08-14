@@ -20,6 +20,7 @@ import { createZoomMeetingLink } from "./services/zoomMeet.js";
 import ratingRoutes from "./Routes/ratingRoutes.js"
 import adminRoutes from "./Routes/adminRoutes.js";
 import dashboardRoutes from "./Routes/dashboardRoutes.js";
+import heroRoutes from "./Routes/heroRoutes.js";
 import { Server } from "socket.io";
 import http from "http";
 import { createAdmin } from "./services/createAdmin.js";
@@ -117,6 +118,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/contact", contactRoutes)
 app.use("/api/ratings", ratingRoutes)
 app.use("/api/admin/dashboard", dashboardRoutes)
+app.use("/api/hero-slides", heroRoutes)
 app.get("/", (req, res) => {
   res.send("Hello World");
 })

@@ -1,15 +1,16 @@
-import { FaTachometerAlt, FaBoxes, FaCalendarAlt, FaGift } from "react-icons/fa";
+import { FaTachometerAlt, FaBoxes, FaCalendarAlt, FaGift, FaImages } from "react-icons/fa";
 import { HeartPulse } from "lucide-react";
 
 export default function Sidebar({ activeTab, setActiveTab, sidebarOpen }) {
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: FaTachometerAlt },
+    { id: "hero", label: "Hero Carousel", icon: FaImages },
     { id: "products", label: "Products", icon: FaBoxes },
-    {id: "availability", label: "Availability", icon: FaTachometerAlt },
+    { id: "availability", label: "Availability", icon: FaTachometerAlt },
     { id: "bookings", label: "Bookings", icon: FaCalendarAlt },
-    {id: "orders", label: "Orders", icon: FaBoxes },
-    {id: "coupon", label: "Coupon", icon: FaGift },
-    {id: "contact", label: "Contact", icon: FaTachometerAlt }
+    { id: "orders", label: "Orders", icon: FaBoxes },
+    { id: "coupon", label: "Coupon", icon: FaGift },
+    { id: "contact", label: "Contact", icon: FaTachometerAlt }
   ];
 
   return (
