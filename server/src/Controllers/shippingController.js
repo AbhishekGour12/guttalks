@@ -2,10 +2,7 @@ import axios from "axios";
 
 import User from "../Models/User.js";
 import jwt from "jsonwebtoken";
-// Store token in memory + expiry
-
-// Get Token (Cached for 24 hours)
-  
+import { formatPhone } from "../utils/phoneUtils.js";
 
 // -------------------------------
 // Shipping Charge API
@@ -13,7 +10,7 @@ import jwt from "jsonwebtoken";
 export const shippingCharge = async (req, res) => {
  try {
     const { address, weight, delivery_postcode } = req.body;
-    const phone = address.phone.startsWith("+") ? address.phone : `+91${address.phone}`;
+    const phone = formatPhone(address.phone);
 
     // 1. Find or Create User & Update Address
     let user = await User.findOne({ phone });

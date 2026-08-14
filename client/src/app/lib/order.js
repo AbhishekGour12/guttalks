@@ -16,7 +16,6 @@ export const orderAPI = {
   },
 
   trackOrder: async (shipmentId) => {
-    console.log((shipmentId))
     const res = await api.get(`/shipping/track/${shipmentId}`);
     return res.data;
   },

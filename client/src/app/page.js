@@ -23,12 +23,9 @@ export default function Home() {
     if (bookingSection) {
       bookingSection.scrollIntoView({ behavior: 'smooth' });
     }
-    console.log('User accepted ₹99 offer from bottom popup');
   };
 
-  const handleModalClose = () => {
-    console.log('User dismissed bottom popup');
-  };
+  const handleModalClose = () => {};
 
   return (
     <>

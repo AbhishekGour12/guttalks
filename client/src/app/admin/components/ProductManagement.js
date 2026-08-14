@@ -6,6 +6,7 @@ import {
   FaStar, FaBoxes, FaUpload, FaChevronDown, FaChevronUp
 } from "react-icons/fa";
 import { ProductApi } from "../../lib/ProductApi";
+import { getImageUrl } from "../../lib/api";
 
 // Empty product template
 const emptyProduct = {
@@ -410,7 +411,7 @@ export default function ProductManagement({ searchTerm }) {
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-[#E8F4F7] flex items-center justify-center overflow-hidden">
                         {product.imageUrls?.[0] ? (
-                          <img src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${product.imageUrls[0]}`} alt={product.name} className="w-full h-full object-cover" />
+                          <img src={getImageUrl(product.imageUrls[0])} alt={product.name} className="w-full h-full object-cover" />
                         ) : (
                           <FaImage className="text-[#18606D]" />
                         )}
@@ -709,7 +710,7 @@ export default function ProductManagement({ searchTerm }) {
                         {productForm.imageUrls.map((url, idx) => (
                           <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-[#D9EEF2] group">
                             <img
-                              src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${url}`}
+                              src={getImageUrl(url)}
                               alt={`Product image ${idx + 1}`}
                               className="w-full h-full object-cover"
                             />

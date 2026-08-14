@@ -10,12 +10,10 @@ const __dirname = path.dirname(__filename);
 
 // Create upload directories with absolute path
 const uploadDir = path.join(process.cwd(), "src", "uploads", "products");
-console.log('Upload directory:', uploadDir);
 
 // Ensure directory exists
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
-  console.log('Created upload directory:', uploadDir);
 }
 
 // Storage configuration with better filename handling
@@ -28,7 +26,6 @@ const storage = multer.diskStorage({
     const ext = path.extname(file.originalname);
     // Create unique filename with timestamp
     const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-    console.log(`Saving file: ${file.originalname} -> ${uniqueName}`);
     cb(null, uniqueName);
   },
 });

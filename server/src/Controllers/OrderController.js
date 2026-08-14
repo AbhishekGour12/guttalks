@@ -6,6 +6,7 @@ import User from '../Models/User.js';
 import mongoose from 'mongoose';
 import console from 'console';
 import { sendOrderStatusEmail } from '../utils/EmailTemplate.js';
+import { formatPhone } from '../utils/phoneUtils.js';
 
 export const createOrder = async (req, res) => {
 
@@ -19,6 +20,7 @@ export const createOrder = async (req, res) => {
       shippingAddress,
       paymentMethod,
       discount = 0,
+      offerDiscount = 0,
       paymentDetails = null,
       isCODEnabled = false,
       totalWeight = 0.5,
@@ -29,7 +31,8 @@ export const createOrder = async (req, res) => {
     } = req.body;
     let user = null;
     if (phone) {
-      user = await User.findOne({ phone });
+      const formattedPhone = formatPhone(phone);
+      user = await User.findOne({ phone: formattedPhone });
     }
 
     let cartItems = [];
@@ -96,14 +99,16 @@ export const createOrder = async (req, res) => {
       };
     });
 
-    // Prepare order object for Shiprocket
+    const totalDiscount = Number(discount || 0) + Number(offerDiscount || 0);
+
+    // Prepare order object
     let plainOrder = {
       _id: new mongoose.Types.ObjectId().toString(),
       items: orderItems.map((i) => ({ ...i, product: i.productId.toString() })),
       shippingAddress,
       subtotal,
       paymentMethod,
-      discount,
+      discount: totalDiscount,
       totalAmount,
       weight: calculatedWeight
     };
@@ -117,7 +122,7 @@ export const createOrder = async (req, res) => {
       items: orderItems,
       shippingAddress,
       subtotal,
-      discount,
+      discount: totalDiscount,
       totalAmount,
       weight: calculatedWeight,
       paymentMethod,

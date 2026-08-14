@@ -54,8 +54,6 @@ app.use(express.urlencoded({ extended: true }));
 
 // Gupshup delivery / failure callbacks (set this URL in Gupshup App → Callback / Webhook)
 app.post("/api/gupshup/webhook", (req, res) => {
-  console.log("========== GUPSHUP WEBHOOK ==========");
-  console.log(JSON.stringify(req.body, null, 2));
   res.sendStatus(200);
 });
 app.get("/api/gupshup/webhook", (req, res) => {

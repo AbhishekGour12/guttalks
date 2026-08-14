@@ -41,7 +41,6 @@ export const submitRating = async (req, res) => {
 
     // Recalculate product average
     const ratings = await Rating.find({ productId });
-    console.log(ratings)
 
     const averageRating =
       ratings.reduce((sum, r) => sum + (Number(r.rating) || 0), 0) /

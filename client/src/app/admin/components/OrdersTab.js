@@ -6,6 +6,7 @@ import { useEffect, useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { getImageUrl } from "../../lib/api";
 
 const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
   const [orders, setOrders] = useState(initialOrders);
@@ -509,11 +510,7 @@ const OrderDetailsModal = ({ order, onClose }) => {
             <div className="space-y-3">
               {items.map((item, idx) => {
                 const prodName = item.name || item.productId?.name || "Product";
-                const imgUrl = item.image
-                  ? (item.image.startsWith('http')
-                      ? item.image
-                      : `${process.env.NEXT_PUBLIC_IMAGE_URL || process.env.NEXT_PUBLIC_API || ''}${item.image}`)
-                  : "/placeholder.png";
+                const imgUrl = item.image ? getImageUrl(item.image) : "/placeholder.png";
 
                 return (
                   <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-4 bg-[#F4FAFB] rounded-2xl p-4 border border-[#E8F4F7] hover:border-[#18606D]/30 transition-all duration-300">

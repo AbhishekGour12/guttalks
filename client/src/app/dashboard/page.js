@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { getImageUrl } from "../lib/api";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("orders");
@@ -190,7 +191,7 @@ const Dashboard = () => {
                       {order.items.map((i, idx) => (
                         <div key={idx} className="flex items-center gap-3 bg-[#F4FAFB] p-3 rounded-xl">
                           <img
-                            src={`${process.env.NEXT_PUBLIC_API}${i.image}`}
+                            src={getImageUrl(i.image)}
                             className="w-12 h-12 rounded-lg object-cover border border-[#D9EEF2]"
                             alt={i.product?.name}
                           />

@@ -85,7 +85,6 @@ export const createCoupon = async (req, res) => {
 
     // prevent same code twice
     const existing = await Coupon.findOne({ code: data.code.toUpperCase() });
-    console.log(existing)
     if (existing) {
       return res.status(400).json({ message: "Coupon code already exists" });
     }

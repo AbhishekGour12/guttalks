@@ -8,6 +8,24 @@ const api = axios.create({
     : "https://api.guttalks.in/api",
 });
 
+export const getImageUrl = (path) => {
+  if (!path) return "";
+  if (typeof path !== "string") return "";
+  // Absolute URLs (http, https, data, blob)
+  if (/^(https?:|data:|blob:)/i.test(path)) {
+    return path;
+  }
+  // Backend uploaded files (/uploads/... or uploads/...)
+  if (path.startsWith("/uploads/") || path.startsWith("uploads/")) {
+    const backendUrl = (process.env.NEXT_PUBLIC_IMAGE_URL || process.env.NEXT_PUBLIC_API || "https://api.guttalks.in").replace(/\/$/, "");
+    const cleanPath = path.startsWith("/") ? path : `/${path}`;
+    return `${backendUrl}${cleanPath}`;
+  }
+  // Frontend public static files (/logo.png, /guts_p1.png, /program-blueprint.png, etc.)
+  return path.startsWith("/") ? path : `/${path}`;
+};
+
+
 // Attach token in every request
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {

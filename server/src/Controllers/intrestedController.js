@@ -45,7 +45,7 @@ export const addUserInterest = async (req, res) => {
 
     res.json({ isLiked: true });
   } catch (error) {
-    console.log(error);
+    console.error("Failed to like product:", error.message);
     res.status(500).json({ message: "Failed to like product" });
   }
 };

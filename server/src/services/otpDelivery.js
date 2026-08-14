@@ -57,11 +57,7 @@ export const sendWhatsAppOtp = async (destinationPhone, otp) => {
     }
   );
 
-  console.log("Gupshup OTP response:", status, JSON.stringify(data), {
-    to: destination,
-    templateId,
-    paramsCount: params.length,
-  });
+  return data;
 
   if (data?.status && data.status !== "submitted" && data.status !== "success") {
     throw new Error(data.message || `Gupshup status: ${data.status}`);

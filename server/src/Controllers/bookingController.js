@@ -6,15 +6,7 @@ import { createZoomMeetingLink } from '../services/zoomMeet.js';
 import crypto from 'crypto';
 import TempSlotHold from '../Models/TempSlotHold.js';
 import { sendBookingConfirmationEmail, sendRescheduleEmail, sendBookingStatusEmail } from '../utils/EmailTemplate.js';
-
-// Helper: format phone with +91
-const formatPhone = (phone) => {
-  let cleaned = phone.toString().replace(/\D/g, '');
-  if (cleaned.length === 10) return `+91${cleaned}`;
-  if (cleaned.length === 12 && cleaned.startsWith('91')) return `+${cleaned}`;
-  if (cleaned.length === 13 && cleaned.startsWith('+')) return cleaned;
-  return `+91${cleaned.slice(-10)}`;
-};
+import { formatPhone } from '../utils/phoneUtils.js';
 
 // Initiate booking after payment (with user details)
 export const initiateBooking = async (req, res) => {
@@ -238,7 +230,6 @@ export const getMCQs = async (req, res) => {
 export const getMyBookings = async (req, res) => {
   try {
     const userId = req.user.id;
-    console.log("Fetching bookings for user ID:", userId);
     const bookings = await Booking.find({ 
       userId, 
       status: { $ne: 'cancelled' } 

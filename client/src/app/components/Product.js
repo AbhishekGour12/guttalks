@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Star, Clock, User, ShoppingCart, Calendar, Filter, Search } from "lucide-react";
 import { ProductApi } from "../lib/ProductApi";
+import { getImageUrl } from "../lib/api";
 
 const LOCAL_IMAGE_FALLBACKS = [
   { match: /gut blueprint/i, src: "/program-blueprint.png" },
@@ -16,10 +17,10 @@ const LOCAL_IMAGE_FALLBACKS = [
 ];
 
 const getProductImage = (product) => {
-  if (product.imageUrls?.[0]) {
-    return `${process.env.NEXT_PUBLIC_IMAGE_URL}${product.imageUrls[0]}`;
+  if (product?.imageUrls?.[0]) {
+    return getImageUrl(product.imageUrls[0]);
   }
-  const local = LOCAL_IMAGE_FALLBACKS.find((f) => f.match.test(product.name || ""));
+  const local = LOCAL_IMAGE_FALLBACKS.find((f) => f.match.test(product?.name || ""));
   return local?.src || null;
 };
 
@@ -126,7 +127,6 @@ export default function Product() {
     try {
       const res = await ProductApi.getProducts({ limit: 100 });
       setProducts(res.products || []);
-      console.log("fetched products", res.products)
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {

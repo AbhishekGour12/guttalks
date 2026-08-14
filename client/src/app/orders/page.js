@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import OrderTracking from "../components/OrderTracking";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
+import { getImageUrl } from "../lib/api";
 
 const MyOrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -22,7 +23,6 @@ const MyOrdersPage = () => {
   const loadOrders = async () => {
     try {
       const data = await orderAPI.getUserOrders();
-      console.log(data);
       setOrders(data.orders);
     } catch (e) {
       toast.error("No orders found");
@@ -147,7 +147,7 @@ const MyOrdersPage = () => {
                       className="flex items-center gap-4 bg-[#F4FAFB] p-4 rounded-xl border border-[#D9EEF2]"
                     >
                       <img
-                        src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${i?.image}`}
+                        src={getImageUrl(i?.image)}
                         className="w-16 h-16 rounded-lg object-cover border border-[#D9EEF2]"
                         alt={i.product?.name}
                       />

@@ -43,6 +43,7 @@ import { ProductApi } from "../../lib/ProductApi";
 import { useCart } from "../../context/CartContext";
 import ScheduleCallModal from "../../components/ScheduleCallModal";
 import { useSelector } from "react-redux";
+import { getImageUrl } from "../../lib/api";
 import toast from "react-hot-toast";
 import useCheckLogin from "../../useCheckLogin"; // adjust path if needed
 import axios from "axios";
@@ -237,7 +238,6 @@ export default function ProductPage() {
       const ratingsData = await ProductApi.getProductRatings(productId);
       let reviewsList = Array.isArray(ratingsData) ? ratingsData : ratingsData?.reviews || [];
       setReviews(reviewsList);
-      console.log(ratingsData)
 
       const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
       reviewsList.forEach((r) => {
@@ -253,7 +253,6 @@ export default function ProductPage() {
         setIsLiked(false);
       }
       const likesRes = await axios.get(`${process.env.NEXT_PUBLIC_API}/api/user-interests/likeCount/${productId}`);
-      console.log("Likes count response:", likesRes.data);
       setLikesCount(likesRes.data.count || 0);
 
     } catch (err) {
@@ -480,7 +479,7 @@ export default function ProductPage() {
           <div className="space-y-4">
             <div className="relative rounded-2xl overflow-hidden bg-white shadow-lg border border-[#D9EEF2] group aspect-square max-w-full">
               <Image
-                src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${mainImage}`}
+                src={getImageUrl(mainImage)}
                 alt={product.name}
                 fill
                 className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
@@ -516,7 +515,7 @@ export default function ProductPage() {
                       }`}
                   >
                     <Image
-                      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${img}`}
+                      src={getImageUrl(img)}
                       alt={`Thumb ${idx + 1}`}
                       width={80}
                       height={80}

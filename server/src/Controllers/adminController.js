@@ -9,7 +9,6 @@ import "../config/env.js";
 export const adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log('Login attempt:', email);
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
@@ -19,9 +18,7 @@ export const adminLogin = async (req, res) => {
     if (!admin) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-    console.log('Admin found:', admin);
     const isMatch = await admin.comparePassword(password);
-    console.log('Password match:', isMatch);
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }

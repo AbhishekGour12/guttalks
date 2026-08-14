@@ -1,6 +1,7 @@
 import User from "../Models/User.js";
 import jwt from "jsonwebtoken";
 import { sendWhatsAppOtp } from "../services/otpDelivery.js";
+import { formatPhone } from "../utils/phoneUtils.js";
 
 const otpStore = new Map();
 const otpRateLimitStore = new Map();
@@ -13,9 +14,11 @@ const Login = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Phone and OTP are required.' });
     }
 
+    const formattedPhone = formatPhone(phone);
+
     try {
         // 1. Verify OTP from your Map store
-        const record = otpStore.get(phone);
+        const record = otpStore.get(formattedPhone) || otpStore.get(phone);
 
         if (!record) {
             return res.status(400).json({ success: false, message: "OTP expired or not found" });
@@ -31,15 +34,16 @@ const Login = async (req, res) => {
         }
 
         // OTP is valid, remove it
+        otpStore.delete(formattedPhone);
         otpStore.delete(phone);
 
         // 2. Find or Create User
         // If user doesn't exist, this is their "Signup"
-        let user = await User.findOne({ phone: phone });
+        let user = await User.findOne({ phone: formattedPhone });
 
         if (!user) {
             user = new User({
-                phone: phone,
+                phone: formattedPhone,
                 isProfileComplete: false // They will fill name/details later
             });
             await user.save();
@@ -65,13 +69,9 @@ const Login = async (req, res) => {
 };
 
 const requestotp = async (req, res) => {
-    // + in URL may arrive encoded; normalize to digits with country code
-    let phone = decodeURIComponent(req.params.phone || "").replace(/\s/g, "");
-    if (phone && !phone.startsWith("+")) {
-        phone = phone.startsWith("91") && phone.length >= 12 ? `+${phone}` : `+91${phone}`;
-    }
-
-    console.log("========== requestotp HIT ==========", phone);
+    // + in URL may arrive encoded; normalize to E.164 standard +91XXXXXXXXXX
+    const rawPhone = decodeURIComponent(req.params.phone || "").replace(/\s/g, "");
+    const phone = formatPhone(rawPhone);
 
     try {
         if (!phone || phone.replace(/\D/g, "").length < 10) {
@@ -88,9 +88,7 @@ const requestotp = async (req, res) => {
         const otp = Math.floor(100000 + Math.random() * 900000);
         otpStore.set(phone, { otp, expiresAt: Date.now() + 10 * 60 * 1000 });
 
-        console.log("Sending WhatsApp OTP via Gupshup to", phone);
         const gupshupRes = await sendWhatsAppOtp(phone, otp);
-        console.log("Gupshup OTP response:", JSON.stringify(gupshupRes));
 
         return res.status(200).json({
             success: true,

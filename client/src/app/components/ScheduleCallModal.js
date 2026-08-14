@@ -57,7 +57,7 @@ const ScheduleCallModal = ({ isOpen, onClose, productName, productPrice = 249 })
         autoConnect: true
       });
 
-      socketRef.current.on('connect', () => console.log('Socket connected'));
+      socketRef.current.on('connect', () => {});
       socketRef.current.on('slot-held', (data) => {
         if (selectedDate && format(selectedDate, 'yyyy-MM-dd') === data.date) {
           loadSlotsForDate(selectedDate);
@@ -180,10 +180,7 @@ useEffect(() => {
     } catch (err) {
       console.error('❌ Release API error:', err);
     }
-  } else {
-    console.log('⚠️ No slot to release');
-  }
-};
+  };
 
   const handleSlotSelect = async (slot) => {
     try {
@@ -218,7 +215,6 @@ useEffect(() => {
 
   const handleCloseModal = async () => {
     await releaseCurrentSlot();
-    console.log('Modal closed, slot released if it was held.');
     onClose();
   };
 

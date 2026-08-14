@@ -7,7 +7,6 @@ import sendEmail from "../services/email.js";
 export const submitContactForm = async (req, res) => {
   try {
     const { name, email, phone, subject, message} = req.body;
-    console.log(name)
     // Simple validation
     if (!name || !email || !subject || !message) {
       return res.status(400).json({
@@ -310,8 +309,6 @@ const sendReplyEmail = async (contact, replyMessage) => {
     
     // Send email using your existing sendEmail middleware
     await sendEmail(emailOptions);
-    
-    console.log(`✅ Reply email sent to ${contact.email}`);
     
   } catch (error) {
     console.error("Reply email sending error:", error);
@@ -722,8 +719,6 @@ const userMailOptions = {
     // Send emails using your existing email middleware
     await sendEmail(adminMailOptions);
     await sendEmail(userMailOptions);
-    
-    console.log(`✅ Contact emails sent to admin and ${contact.email}`);
     
   } catch (error) {
     console.error("Email sending error:", error);

@@ -92,7 +92,6 @@ const LoginPage = () => {
     try {
       setIsLoading(true);
       const response = await authAPI.requestotp(fullPhone);
-      console.log("OTP sent to:", fullPhone);
       toast.success("OTP sent successfully!");
       setOtpSent(true);
       setTimer(120);

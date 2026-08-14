@@ -13,6 +13,7 @@ import { ProductApi } from "../lib/ProductApi";
 import { paymentAPI } from "../lib/payment";
 import { orderAPI } from "../lib/order";
 import { useRouter } from "next/navigation";
+import { getImageUrl } from "../lib/api";
 import axios from "axios";
 
 const CartSlideOut = () => {
@@ -209,15 +210,10 @@ useEffect(() => { fetchCart(); }, [user]);
     mappedCart.reduce((sum, item) => sum + Number(item?.product?.weight || 0.2) * item.quantity, 0), 
   [mappedCart]);
 
-  const onlineDiscountPercent = 10;
-  const onlineDiscountAmountPreview = Math.round(subtotal * (onlineDiscountPercent / 100));
-  const onlinePreviewTotal = subtotal - couponDiscount - onlineDiscountAmountPreview;
   const codTotal = subtotal - couponDiscount + codFee;
-  const finalAmount = paymentMethod === "online"
-    ? Number(onlinePreviewTotal.toFixed(0))
-    : isCOD
-      ? Math.ceil(codTotal)
-      : Number((subtotal - couponDiscount).toFixed(2));
+  const finalAmount = isCOD
+    ? Math.ceil(codTotal)
+    : Number((subtotal - couponDiscount).toFixed(2));
   const roundOffAmount = isCOD ? finalAmount - codTotal : 0;
 
   // ================================
@@ -323,8 +319,7 @@ useEffect(() => { fetchCart(); }, [user]);
       toast.error("Payment gateway is still loading. Please wait 2 seconds.");
       return;
     }
-    const discountAmount = Number(subtotal * 0.10).toFixed(2);
-    const finalOnlineAmount = subtotal - couponDiscount - discountAmount;
+    const finalOnlineAmount = Math.max(0, subtotal - couponDiscount);
     const roundedRupees = Math.round(finalOnlineAmount);
     const amountToPay = roundedRupees * 100;
     if (!amountToPay || amountToPay < 100) {
@@ -400,6 +395,10 @@ useEffect(() => { fetchCart(); }, [user]);
   const placeOrder = async (payMethod, paymentDetails = null) => {
     setLoading(true);
     try {
+      const computedFinalAmount = payMethod === "cod"
+        ? Math.ceil(codTotal)
+        : Math.max(0, Math.round(subtotal - couponDiscount));
+
       const formData = {
         shippingAddress: address,
         paymentMethod: payMethod,
@@ -407,14 +406,15 @@ useEffect(() => { fetchCart(); }, [user]);
         discount: couponDiscount,
         offerDiscount: 0,
         roundOff: roundOffAmount,
-        isCODEnabled: isCOD,
+        isCODEnabled: payMethod === "cod",
         totalWeight,
-        finalAmount,
+        finalAmount: computedFinalAmount,
         phone: token,
         items: mappedCart,
         userId: user ? true : false,
       };
-      const order = await axios.post(`${process.env.NEXT_PUBLIC_API}/api/order`, formData);
+      const apiBaseUrl = (process.env.NEXT_PUBLIC_API || "https://api.guttalks.in").replace(/\/$/, "");
+      const order = await axios.post(`${apiBaseUrl}/api/order`, formData);
       toast.success("Order Placed!");
       await clearCart();
       localStorage.removeItem("cart");
@@ -567,7 +567,7 @@ useEffect(() => { fetchCart(); }, [user]);
   const unitPrice = calculateUnitFinalPrice(item);
   return (
     <div key={item._id || `${getCartItemProductId(item)}-${item.variant?.name || "default"}`} className="flex gap-3 bg-gray-100 p-3 rounded-lg mb-3">
-      <img src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${item.product?.imageUrls?.[0] || ""}`} className="w-20 h-20 rounded-lg object-cover" />
+      <img src={getImageUrl(item.product?.imageUrls?.[0]) || "/placeholder.png"} className="w-20 h-20 rounded-lg object-cover" />
       <div className="flex-1">
         <p className="font-semibold">{item.product.name}</p>
         {item.variant && (
@@ -716,11 +716,10 @@ useEffect(() => { fetchCart(); }, [user]);
                         <div className="flex justify-between items-center">
                           <div className="flex items-center gap-2 text-left">
                             <FaWallet className="text-sm text-yellow-400"/>
-                            <div><span className="block font-semibold text-sm">Pay Online</span><span className="text-[10px] text-yellow-300 font-bold uppercase">★ 10% Discount Applied</span></div>
+                            <div><span className="block font-semibold text-sm">Pay Online</span><span className="text-[10px] text-teal-100">Cards, UPI, Netbanking</span></div>
                           </div>
                           <div className="text-right">
-                            <span className="block font-bold text-lg leading-none">₹{onlinePreviewTotal.toFixed(0)}</span>
-                            <span className="text-[10px] line-through opacity-50">₹{(subtotal - couponDiscount).toFixed(2)}</span>
+                            <span className="block font-bold text-lg leading-none">₹{Math.max(0, subtotal - couponDiscount).toFixed(0)}</span>
                           </div>
                         </div>
                       </button>
@@ -761,7 +760,6 @@ useEffect(() => { fetchCart(); }, [user]);
                     <div className="flex justify-between text-teal-600"><span>Shipping</span><span>FREE</span></div>
                     {isCOD && <div className="flex justify-between text-teal-700"><span>COD Handling</span><span>+₹{codFee}</span></div>}
                     {couponDiscount > 0 && <div className="flex justify-between text-green-700"><span>Coupon Discount</span><span>-₹{couponDiscount}</span></div>}
-                    {paymentMethod === "online" && <div className="flex justify-between text-cyan-700"><span>Online Discount (10%)</span><span>-₹{onlineDiscountAmountPreview.toFixed(2)}</span></div>}
                     <hr/>
                     <div className="flex justify-between font-bold text-lg text-[#0f766e]"><span>Grand Total</span><span>₹{finalAmount}</span></div>
                   </motion.div>
