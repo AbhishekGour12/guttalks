@@ -288,18 +288,17 @@ const ProblemSolutionSection = () => {
               {/* Problem Image */}
               <motion.div 
                 variants={itemVariants}
-                className="relative mb-8 rounded-2xl overflow-hidden shadow-md"
+                className="relative mb-8 rounded-2xl overflow-hidden shadow-md bg-[#FEF0E8]/50"
               >
-                <div className="relative h-[200px] sm:h-[240px] w-full">
+                <div className="relative w-full aspect-[16/9] sm:aspect-[2/1]">
                   <Image
                     src="/guts_p1.png"
                     alt="Person experiencing gut discomfort"
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-cover"
-                    style={{ objectPosition: "center 30%" }}
+                    className="object-contain p-2"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#FEF7F0] via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#FEF7F0]/40 via-transparent to-transparent pointer-events-none" />
                 </div>
                 <div className="absolute bottom-3 left-3 right-3">
                   <div className="bg-white/95 backdrop-blur-sm rounded-xl px-3 py-2 inline-block shadow-sm border border-[#FEE6D8]">
@@ -387,17 +386,17 @@ const ProblemSolutionSection = () => {
               {/* Solution Image */}
               <motion.div 
                 variants={itemVariants}
-                className="relative mb-8 rounded-2xl overflow-hidden shadow-md"
+                className="relative mb-8 rounded-2xl overflow-hidden shadow-md bg-[#E8F4F7]/50"
               >
-                <div className="relative h-[200px] sm:h-[240px] w-full">
+                <div className="relative w-full aspect-[16/9] sm:aspect-[2/1]">
                   <Image
                     src="/guts_p2.png"
                     alt="Person with healthy gut analysis dashboard"
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-cover"
+                    className="object-contain p-2"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#F4FAFB] via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#F4FAFB]/40 via-transparent to-transparent pointer-events-none" />
                 </div>
                 <div className="absolute bottom-3 left-3 right-3">
                   <div className="bg-white/95 backdrop-blur-sm rounded-xl px-3 py-2 inline-block shadow-sm border border-[#D9EEF2]">

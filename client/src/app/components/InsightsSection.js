@@ -300,7 +300,7 @@ const InsightsSection = () => {
                       <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-full border-2 border-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-[#0F172A] text-sm sm:text-base">Sarah Johnson</h3>
+                      <h3 className="font-semibold text-[#0F172A] text-sm sm:text-base">Ananya Sharma</h3>
                       <p className="text-xs text-[#64748B]">Member since Jan 2024</p>
                     </div>
                   </div>

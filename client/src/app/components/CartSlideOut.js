@@ -698,10 +698,18 @@ useEffect(() => { fetchCart(); }, [user]);
                   </div>
 
                   <button 
-                    onClick={() => setCheckoutStep("payment")} 
-                    className="w-full mt-6 bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white py-3 rounded-xl font-bold shadow-lg active:scale-95 transition-all"
+                    onClick={handleRazorpay} 
+                    disabled={loading}
+                    className="w-full mt-6 bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white py-3.5 rounded-xl font-bold shadow-lg active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    Continue to Payment
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Opening Razorpay...</span>
+                      </div>
+                    ) : (
+                      "Continue to Payment (Razorpay)"
+                    )}
                   </button>
                 </>
               )}

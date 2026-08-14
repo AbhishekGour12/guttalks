@@ -227,7 +227,7 @@ const LoginPage = () => {
               {/* Phone Number with Country Code */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-[#18606D]">
-                  Phone Number
+                  WhatsApp Mobile Number
                 </label>
                 <div className="flex gap-2">
                   <select
@@ -243,7 +243,7 @@ const LoginPage = () => {
                     <input
                       type="tel"
                       name="phone"
-                      placeholder="10-digit mobile number"
+                      placeholder="10-digit WhatsApp number"
                       value={formData.phone}
                       onChange={handlePhoneChange}
                       maxLength={10}
@@ -261,10 +261,13 @@ const LoginPage = () => {
                       <p className="text-xs text-red-500 mt-1 ml-2">{phoneError}</p>
                     )}
                     {isPhoneValid && formData.phone.length === 10 && !phoneError && (
-                      <p className="text-xs text-[#2A7F8F] mt-1 ml-2 font-medium">✓ Valid phone number</p>
+                      <p className="text-xs text-[#2A7F8F] mt-1 ml-2 font-medium">✓ Valid WhatsApp number</p>
                     )}
                   </div>
                 </div>
+                <p className="text-xs text-[#2A7F8F] mt-1 ml-1 flex items-center gap-1 font-medium">
+                  <span>💬</span> Note: Please enter your WhatsApp number (OTP is sent via WhatsApp)
+                </p>
               </div>
 
               {/* Send OTP Button */}
@@ -281,7 +284,7 @@ const LoginPage = () => {
                       <span>Sending OTP...</span>
                     </div>
                   ) : (
-                    "Send OTP"
+                    "Send OTP on WhatsApp"
                   )}
                 </button>
               )}
@@ -290,7 +293,7 @@ const LoginPage = () => {
               {otpSent && (
                 <div className="space-y-3">
                   <label className="block text-sm font-medium text-[#18606D]">
-                    Verification Code
+                    Verification Code (Sent to WhatsApp)
                   </label>
                   <div className="relative">
                     <input
@@ -310,7 +313,7 @@ const LoginPage = () => {
                   
                   {timer > 0 ? (
                     <p className="text-center text-sm text-[#2A7F8F]">
-                      OTP expires in <span className="font-semibold text-[#18606D]">{formatTime(timer)}</span>
+                      WhatsApp OTP expires in <span className="font-semibold text-[#18606D]">{formatTime(timer)}</span>
                     </p>
                   ) : (
                     <button
@@ -319,7 +322,7 @@ const LoginPage = () => {
                       className="w-full text-center text-sm text-[#18606D] hover:text-[#2A7F8F] font-semibold transition-colors"
                       disabled={isLoading}
                     >
-                      {isLoading ? "Sending..." : "Resend OTP"}
+                      {isLoading ? "Sending..." : "Resend OTP on WhatsApp"}
                     </button>
                   )}
                 </div>
@@ -357,22 +360,23 @@ const LoginPage = () => {
                   <div className="w-full border-t border-[#D9EEF2]"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-[#2A7F8F]">New to GutWell?</span>
+                  <span className="px-4 bg-white text-[#2A7F8F]">New to GutTalks?</span>
                 </div>
               </div>
 
               {/* Guest Checkout Option */}
-              <Link
-                href="/"
+              <button
+                type="button"
                 onClick={() => {
                   localStorage.removeItem("token");
                   localStorage.removeItem("user");
                   dispatch(logoutSuccess());
+                  router.push("/");
                 }}
-                className="block w-full py-3 text-center text-[#18606D] border border-[#D9EEF2] rounded-xl hover:bg-[#F4FAFB] hover:border-[#2A7F8F] transition-all font-medium"
+                className="w-full py-3 text-center text-[#18606D] border border-[#D9EEF2] rounded-xl hover:bg-[#F4FAFB] hover:border-[#2A7F8F] transition-all font-medium cursor-pointer"
               >
                 Explore as Guest
-              </Link>
+              </button>
             </form>
 
             {/* Footer Links */}

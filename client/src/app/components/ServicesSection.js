@@ -259,20 +259,6 @@ const ServicesSection = () => {
           ))}
         </div>
 
-        {/* Bottom CTA Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={mounted && isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
-          className="text-center mt-12 sm:mt-16"
-        >
-          <div className="inline-flex flex-col sm:flex-row items-center gap-3 bg-white rounded-2xl p-2 shadow-sm border border-[#D9EEF2] hover:shadow-md transition-shadow">
-            <span className="px-4 py-2 text-sm text-[#64748B]">Not sure where to start?</span>
-            <button className="px-5 py-2 bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white text-sm font-semibold rounded-full shadow-md hover:shadow-lg transition-all hover:scale-105">
-              Take Free Assessment →
-            </button>
-          </div>
-        </motion.div>
 
         {/* Trust Indicators */}
         <motion.div

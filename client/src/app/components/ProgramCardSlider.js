@@ -75,8 +75,8 @@ export default function ProgramCardSlider() {
                   isActive ? "border-[#18606D] ring-2 ring-[#18606D]/20" : "border-[#D9EEF2] bg-white"
                 }`}
               >
-                <div className="relative h-48 sm:h-56 bg-[#F4FAFB]">
-                  <Image src={program.image} alt={program.title} fill className="object-cover" sizes="(max-width: 768px) 85vw, 40vw" />
+                <div className="relative h-48 sm:h-56 bg-[#F4FAFB] overflow-hidden">
+                  <Image src={program.image} alt={program.title} fill className="object-contain p-2 object-center" sizes="(max-width: 768px) 85vw, 40vw" />
                   <span className="absolute top-3 left-3 bg-[#18606D]/95 text-white text-[10px] sm:text-xs font-semibold px-2.5 py-1 rounded-full">
                     {program.badge}
                   </span>

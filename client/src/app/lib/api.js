@@ -79,18 +79,25 @@ api.interceptors.response.use(
           typeof window !== "undefined" &&
           window.location.pathname.startsWith("/admin");
 
-        // Don't treat it as a session failure if it's the auth request itself (login/reset) failing
+        // Don't treat it as a session failure if it's an auth request failing
         const isAuthRequest =
           error.config?.url?.includes("/admin/login") ||
-          error.config?.url?.includes("/admin/reset-password");
+          error.config?.url?.includes("/admin/reset-password") ||
+          error.config?.url?.includes("/auth/login") ||
+          error.config?.url?.includes("/auth/requestotp") ||
+          error.config?.url?.includes("/auth/verifyotp");
 
-        if (isAdminRoute && !isAuthRequest) {
+        const isLoginPage =
+          typeof window !== "undefined" &&
+          (window.location.pathname === "/login" || window.location.pathname === "/admin/login");
+
+        if (isAdminRoute && !isAuthRequest && !isLoginPage) {
           // Clear admin session
           localStorage.removeItem("adminToken");
           localStorage.removeItem("_agi");
           window.location.href = "/admin/login";
-        } else if (!isAdminRoute) {
-          // Clear user session
+        } else if (!isAdminRoute && !isAuthRequest && !isLoginPage && localStorage.getItem("token")) {
+          // Clear user session only if a token was present and expired
           localStorage.removeItem("token");
           localStorage.removeItem("user");
           window.location.href = "/login";

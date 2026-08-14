@@ -346,7 +346,7 @@ useEffect(() => {
                         <img
                           src={getImageUrl(slides[currentSlide]?.image)}
                           alt={slides[currentSlide]?.title || "Hero slide"}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain sm:object-cover object-center bg-[#18606D]/10"
                           onError={(e) => { e.target.src = "/herocraousel_1.png"; }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />

@@ -64,12 +64,9 @@ export default function Testimonial() {
                 transition={{ duration: 0.3 }}
                 className="relative bg-white border border-[#D9EEF2] rounded-2xl shadow-md p-6 overflow-hidden min-w-[85vw] sm:min-w-[45vw] md:min-w-0 snap-center flex-shrink-0 hover:shadow-xl transition-all"
               >
-                {/* Decorative ellipse */}
-                <div className="absolute top-0 left-0 w-24 h-24 sm:w-28 sm:h-28 -translate-x-6 -translate-y-6 opacity-20">
-                  <Image src="/ellipse.png" alt="ellipse" width={100} height={100} className="object-contain" />
-                  <div className="absolute inset-0 flex items-center justify-center text-[#18606D]">
-                    <Quote size={28} className="opacity-80" />
-                  </div>
+                {/* Decorative background accent */}
+                <div className="absolute top-0 left-0 w-24 h-24 sm:w-28 sm:h-28 -translate-x-6 -translate-y-6 bg-[#CFE8EC]/40 rounded-full flex items-center justify-center text-[#18606D]">
+                  <Quote size={28} className="opacity-80 translate-x-2 translate-y-2" />
                 </div>
 
                 {/* Content */}

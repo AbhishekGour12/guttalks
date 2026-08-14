@@ -87,7 +87,7 @@ export const PROGRAMS = [
     shortTitle: "The Gut Blueprint",
     tagline:
       "A clinically guided, personalized gut restoration system using microbiome testing, custom probiotics, expert consultations, and nutrition tracking.",
-    price: "₹2,599",
+    price: "₹25,999",
     priceNote: null,
     problem:
       "Chronic gut issues like IBS, bloating, food sensitivities, and fatigue often stem from underlying microbiome imbalances—not a lack of effort or ineffective lifestyle habits.",
