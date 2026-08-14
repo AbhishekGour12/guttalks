@@ -171,16 +171,16 @@ useEffect(() => {
     const userIdValue = user?._id || sessionId.current;
    
     try {
-      const result = await availabilityAPI.releaseSlot({
+      await availabilityAPI.releaseSlot({
         date: dateStr,
         startTime: timeStr,
         userId: userIdValue
       });
-     
     } catch (err) {
       console.error('❌ Release API error:', err);
     }
-  };
+  }
+};
 
   const handleSlotSelect = async (slot) => {
     try {
