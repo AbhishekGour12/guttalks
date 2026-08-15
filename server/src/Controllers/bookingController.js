@@ -132,17 +132,21 @@ export const initiateBooking = async (req, res) => {
       });
     }
     const userEmail = guestInfo?.email || userDetails?.email || req.user?.email;
-if (userEmail) {
-  await sendBookingConfirmationEmail(userEmail, {
-    bookingId,
-    date: startOfDay,
-    startTime,
-    endTime,
-    meetLink,
-    price,
-    userName: guestInfo?.name || userDetails?.name || req.user?.name
-  });
-}
+    if (userEmail) {
+      try {
+        await sendBookingConfirmationEmail(userEmail, {
+          bookingId,
+          date: startOfDay,
+          startTime,
+          endTime,
+          meetLink,
+          price,
+          userName: guestInfo?.name || userDetails?.name || req.user?.name
+        });
+      } catch (emailErr) {
+        console.error('⚠️ Booking confirmation email failed (booking created successfully):', emailErr.message || emailErr);
+      }
+    }
 
 
     res.json({ success: true, bookingId: booking.bookingId, meetLink });
@@ -274,15 +278,19 @@ export const updateBookingStatus = async (req, res) => {
     // Send status update notification email
     const userEmail = booking.guestEmail || booking.userId?.email;
     if (userEmail) {
-      const userName = booking.guestName || booking.userId?.name || 'Valued Customer';
-      await sendBookingStatusEmail(userEmail, {
-        bookingId: booking.bookingId,
-        date: booking.date,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        status: booking.status,
-        userName
-      });
+      try {
+        const userName = booking.guestName || booking.userId?.name || 'Valued Customer';
+        await sendBookingStatusEmail(userEmail, {
+          bookingId: booking.bookingId,
+          date: booking.date,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          status: booking.status,
+          userName
+        });
+      } catch (emailErr) {
+        console.error('⚠️ Booking status email failed:', emailErr.message || emailErr);
+      }
     }
 
     res.json({ success: true, booking });
@@ -352,17 +360,21 @@ export const rescheduleBooking = async (req, res) => {
     // Send email to user
     const userEmail = booking.guestEmail;
     if (userEmail) {
-      await sendRescheduleEmail(userEmail, {
-        bookingId: booking.bookingId,
-        oldDate,
-        oldStartTime,
-        oldEndTime,
-        newDate: startOfDay,
-        newStartTime,
-        newEndTime,
-        meetLink: booking.meetLink,
-        userName: booking.guestName || 'Valued Customer'
-      });
+      try {
+        await sendRescheduleEmail(userEmail, {
+          bookingId: booking.bookingId,
+          oldDate,
+          oldStartTime,
+          oldEndTime,
+          newDate: startOfDay,
+          newStartTime,
+          newEndTime,
+          meetLink: booking.meetLink,
+          userName: booking.guestName || 'Valued Customer'
+        });
+      } catch (emailErr) {
+        console.error('⚠️ Reschedule email failed:', emailErr.message || emailErr);
+      }
     }
 
     // Emit socket event (optional)
