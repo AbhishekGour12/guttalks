@@ -4,9 +4,8 @@ import { motion } from "framer-motion";
 import { FaEye, FaFileExcel, FaTimesCircle } from "react-icons/fa";
 import { useEffect, useState, useMemo } from "react";
 import * as XLSX from "xlsx";
-import axios from "axios";
 import toast from "react-hot-toast";
-import { getImageUrl, getApiBaseUrl } from "../../lib/api";
+import api, { getImageUrl, getApiBaseUrl } from "../../lib/api";
 
 const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
   const [orders, setOrders] = useState(initialOrders);
@@ -26,8 +25,7 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const apiBaseUrl = getApiBaseUrl();
-      const res = await axios.get(`${apiBaseUrl}/api/admin/orders`);
+      const res = await api.get('/admin/orders');
       if (res?.data?.orders) setOrders(res.data.orders);
     } catch (err) {
       console.error("Error fetching orders:", err);
@@ -150,8 +148,7 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
   const updateOrderStatus = async (orderId, customStatus, trackingId = null) => {
     setUpdatingStatus(orderId);
     try {
-      const apiBaseUrl = getApiBaseUrl();
-      await axios.put(`${apiBaseUrl}/api/admin/${orderId}/status`, {
+      await api.put(`/admin/${orderId}/status`, {
         customStatus
       });
       toast.success('Order status updated');

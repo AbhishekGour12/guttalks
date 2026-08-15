@@ -24,8 +24,10 @@ import Image from 'next/image';
 import ScheduleCallModal from './ScheduleCallModal';
 import { heroApi } from '../lib/heroApi';
 import { getImageUrl } from '../lib/api';
+import { useConsultationOffer } from '../context/ConsultationOfferContext';
 
 const HeroSection = () => {
+  const { effectivePrice, basePrice, offerPrice, isOfferValid } = useConsultationOffer();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [bubbles, setBubbles] = useState([]);
@@ -198,9 +200,15 @@ useEffect(() => {
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-[#18606D]"></span>
                 </div>
                 <FaTag className="text-xs sm:text-sm" />
-                <span className="text-xs sm:text-sm font-semibold">Limited Time Offer</span>
-                <span className="text-xs sm:text-sm line-through text-[#64748B]">₹399</span>
-                <span className="text-xs sm:text-sm font-bold text-[#18606D]">₹99 Only</span>
+                <span className="text-xs sm:text-sm font-semibold">{isOfferValid ? "Limited Time Offer" : "Root Rx Consultation"}</span>
+                {isOfferValid ? (
+                  <>
+                    <span className="text-xs sm:text-sm line-through text-[#64748B]">₹{basePrice}</span>
+                    <span className="text-xs sm:text-sm font-bold text-[#18606D]">₹{offerPrice} Only</span>
+                  </>
+                ) : (
+                  <span className="text-xs sm:text-sm font-bold text-[#18606D]">₹{basePrice}</span>
+                )}
                 <FaClock className="text-xs sm:text-sm ml-1" />
               </motion.div>
 
@@ -221,7 +229,11 @@ useEffect(() => {
                 variants={fadeInUp}
                 className="text-sm sm:text-base lg:text-lg xl:text-lg text-[#64748B] leading-relaxed mb-6 sm:mb-8 max-w-xl"
               >
-                Bloating, irregular digestion, and fatigue often mean your gut needs personalized attention. Start with a GutTalks Root Rx Session for just <span className="line-through text-[#94A3B8]">₹399</span>{' '}<span className="font-bold text-[#18606D]">₹99</span>
+                Bloating, irregular digestion, and fatigue often mean your gut needs personalized attention. Start with a GutTalks Root Rx Session for just {isOfferValid ? (
+                  <><span className="line-through text-[#94A3B8]">₹{basePrice}</span>{' '}<span className="font-bold text-[#18606D]">₹{offerPrice}</span></>
+                ) : (
+                  <span className="font-bold text-[#18606D]">₹{basePrice}</span>
+                )}
                 <span className="block mt-2">Get clarity on your symptoms and a personalized nutrition & lifestyle roadmap from certified gut health experts.</span>
              </motion.p>
               {/* Bullet Points */}
@@ -267,8 +279,8 @@ useEffect(() => {
                   <div className="absolute inset-0 bg-gradient-to-r from-white to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
                   <FaCalendarCheck className="text-base sm:text-lg lg:text-xl" />
                   <span>Book Consultation for</span>
-                  <span className="line-through text-white/70 text-xs sm:text-sm">₹399</span>
-                  <span className="font-bold text-lg sm:text-xl">₹99</span>
+                  {isOfferValid && <span className="line-through text-white/70 text-xs sm:text-sm">₹{basePrice}</span>}
+                  <span className="font-bold text-lg sm:text-xl">₹{effectivePrice}</span>
                   <span className="absolute -top-1 -right-1 w-8 h-8 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-20 blur-sm" />
                 </motion.button>
                 
@@ -317,7 +329,11 @@ useEffect(() => {
                 <div className="flex items-center gap-2 bg-[#CFE8EC]/30 px-2 py-1 rounded-full">
                   <FaTag className="text-[#18606D] text-xs" />
                   <span className="text-[10px] font-medium text-[#18606D]">
-                    <span className="line-through text-[#64748B]">₹399</span> → ₹99
+                    {isOfferValid ? (
+                      <><span className="line-through text-[#64748B]">₹{basePrice}</span> → ₹{offerPrice}</>
+                    ) : (
+                      `₹${basePrice}`
+                    )}
                   </span>
                 </div>
               </motion.div>
@@ -528,8 +544,8 @@ useEffect(() => {
             >
               <FaCalendarCheck />
               <span>Book</span>
-              <span className="line-through text-white/70 text-xs">₹399</span>
-              <span className="font-bold">₹99</span>
+              {isOfferValid && <span className="line-through text-white/70 text-xs">₹{basePrice}</span>}
+              <span className="font-bold">₹{effectivePrice}</span>
               <span className="max-sm:hidden">Consultation</span>
             </motion.button>
             <motion.button
@@ -545,7 +561,7 @@ useEffect(() => {
 
         {/* No extra spacer – the sticky CTA overlays the content */}
       </section>
-      <ScheduleCallModal isOpen={showScheduleModal} onClose={() => setShowScheduleModal(false)} productName="GutTalks Root Rx Session" productPrice={99} />
+      <ScheduleCallModal isOpen={showScheduleModal} onClose={() => setShowScheduleModal(false)} productName="GutTalks Root Rx Session" />
     </>
   );
 };

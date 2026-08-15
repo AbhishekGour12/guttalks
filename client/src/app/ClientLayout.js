@@ -7,9 +7,10 @@ import Footer from "./components/Footer";
 import { FaWhatsapp } from "react-icons/fa";
 import { motion } from "framer-motion";
 
+import OfferBannerWidget from "./components/OfferBannerWidget";
+
 export default function ClientLayout({ children }) {
   const pathname = usePathname();
-
 
   const hiddenRoutes = [
     "/login",
@@ -31,9 +32,10 @@ export default function ClientLayout({ children }) {
     "/admin"
   ].some((route) => pathname.startsWith(route));
 
-
   return (
     <>
+      {!shouldHide && <OfferBannerWidget />}
+
       {!shouldHide && <Navbar />}
 
       {!shouldHide && <CartSlideOut />}

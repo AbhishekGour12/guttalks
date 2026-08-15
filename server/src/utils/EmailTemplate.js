@@ -15,10 +15,15 @@ export const sendOrderStatusEmail = async (userEmail, orderDetails) => {
     updatedAt
   } = orderDetails;
 
-  const subject = `📦 Order Status Update - GutTalks (Order #${orderId})`;
+  const isOrderPlaced = status === 'Order Placed' || customStatus === 'order_placed';
+  const displayStatus = customStatus || status;
+  const subject = isOrderPlaced
+    ? `🛍️ Order Placed Successfully - GutTalks (Order #${orderId})`
+    : `📦 Order Status Update: ${displayStatus} - GutTalks (Order #${orderId})`;
 
   const statusColor = {
     'Order Placed': '#18606D',
+    'order_placed': '#18606D',
     'Processing': '#FF9800',
     'Shipped': '#2196F3',
     'Delivered': '#4CAF50',
@@ -31,7 +36,7 @@ export const sendOrderStatusEmail = async (userEmail, orderDetails) => {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Order Status Update - GutTalks</title>
+  <title>${isOrderPlaced ? 'Order Confirmation' : 'Order Status Update'} - GutTalks</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -122,13 +127,13 @@ export const sendOrderStatusEmail = async (userEmail, orderDetails) => {
 <body>
   <div class="container">
     <div class="header">
-      <h1>📦 Order Status Update</h1>
+      <h1>${isOrderPlaced ? '🛍️ Order Placed Successfully!' : '📦 Order Status Update'}</h1>
     </div>
     <div class="content">
-      <p>Dear Customer,</p>
-      <p>Your order <strong>#${orderId}</strong> status has been updated to:</p>
+      <p>Dear ${shippingAddress?.fullName || 'Valued Customer'},</p>
+      <p>${isOrderPlaced ? `Thank you for your order! We have received your order <strong>#${orderId}</strong> and are preparing it for dispatch.` : `Your order <strong>#${orderId}</strong> status has been updated to:`}</p>
       <div style="text-align: center;">
-        <span class="status-badge">${customStatus || status}</span>
+        <span class="status-badge">${displayStatus}</span>
       </div>
       <div class="info-box">
         <p><strong>📅 Updated on:</strong> ${new Date(updatedAt).toLocaleString('en-IN')}</p>

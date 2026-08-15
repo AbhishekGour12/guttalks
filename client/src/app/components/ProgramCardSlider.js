@@ -7,8 +7,10 @@ import { FaArrowLeft, FaArrowRight, FaCheck } from "react-icons/fa";
 import { ProductApi } from "../lib/ProductApi";
 import { PROGRAMS } from "../lib/guttalksContent";
 import ScheduleCallModal from "./ScheduleCallModal";
+import { useConsultationOffer } from "../context/ConsultationOfferContext";
 
 export default function ProgramCardSlider() {
+  const { effectivePrice, basePrice, isOfferValid } = useConsultationOffer();
   const scrollRef = useRef(null);
   const [products, setProducts] = useState([]);
   const [activeId, setActiveId] = useState(PROGRAMS[0].id);
@@ -124,8 +126,12 @@ export default function ProgramCardSlider() {
             <h3 className="text-xl font-bold text-[#1A4D3E] mb-2">{active.title}</h3>
             <p className="text-sm text-[#64748B] leading-relaxed">{active.tagline}</p>
             <p className="mt-2 text-lg font-bold text-[#18606D]">
-              {active.price}
-              {active.priceNote ? <span className="ml-2 text-xs font-normal text-[#94A3B8]">{active.priceNote}</span> : null}
+              {active.isConsultation ? `₹${effectivePrice}` : active.price}
+              {active.isConsultation ? (
+                isOfferValid ? <span className="ml-2 text-xs font-normal text-[#94A3B8]">Introductory offer · Was ₹{basePrice}</span> : null
+              ) : (
+                active.priceNote ? <span className="ml-2 text-xs font-normal text-[#94A3B8]">{active.priceNote}</span> : null
+              )}
             </p>
           </div>
 
@@ -187,7 +193,6 @@ export default function ProgramCardSlider() {
         isOpen={showScheduleModal}
         onClose={() => setShowScheduleModal(false)}
         productName="GutTalks Root Rx Session"
-        productPrice={99}
       />
     </section>
   );

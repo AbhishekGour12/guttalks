@@ -52,7 +52,6 @@ export default function Home() {
         isOpen={showScheduleModal} 
         onClose={() => setShowScheduleModal(false)} 
         productName="GutTalks Root Rx Session" 
-        productPrice={99}
       />
     </>
   );

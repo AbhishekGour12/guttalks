@@ -5,7 +5,10 @@ import { adminAuth } from '../Middleware/adminAuth.js';
 
 const router = express.Router();
 
+import { getConsultationSettings } from '../Controllers/consultationSettingsController.js';
+
 router.post('/initiate', authMiddleware, initiateBooking);
+router.get('/consultation-settings', getConsultationSettings);
 router.get('/my-bookings', authMiddleware, getMyBookings);
 router.post('/submit-mcq', authMiddleware, submitMCQs);
 router.get('/mcqs', getMCQs);

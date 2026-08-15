@@ -14,8 +14,9 @@ import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
+import { useConsultationOffer } from '../context/ConsultationOfferContext';
 
-const ScheduleCallModal = ({ isOpen, onClose, productName, productPrice = 249 }) => {
+const ScheduleCallModal = ({ isOpen, onClose, productName, productPrice }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [slots, setSlots] = useState([]);
@@ -34,7 +35,8 @@ const ScheduleCallModal = ({ isOpen, onClose, productName, productPrice = 249 })
   const socketRef = useRef(null);
   const sessionId = useRef(Math.random().toString(36).substring(7));
 
-  const CONSULTATION_PRICE = 99;
+  const { effectivePrice, basePrice, offerPrice, isOfferValid } = useConsultationOffer();
+  const CONSULTATION_PRICE = (productPrice && productPrice !== 99 && productPrice !== 399 && productPrice !== 499) ? productPrice : effectivePrice;
   const isLoggedIn = !!user;
 
   // Pre-fill address from logged-in user

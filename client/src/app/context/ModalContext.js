@@ -14,11 +14,11 @@ export const useModal = () => {
 export const ModalProvider = ({ children }) => {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [modalProps, setModalProps] = useState({
-    productName: 'Consultation',
-    productPrice: 99,
+    productName: 'GutTalks Root Rx Session',
+    productPrice: null,
   });
 
-  const openScheduleModal = useCallback((productName = 'Consultation', productPrice = 99) => {
+  const openScheduleModal = useCallback((productName = 'GutTalks Root Rx Session', productPrice = null) => {
     setModalProps({ productName, productPrice });
     setIsScheduleModalOpen(true);
   }, []);

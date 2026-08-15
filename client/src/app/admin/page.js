@@ -13,6 +13,7 @@ import OrdersTab from "./components/OrdersTab";
 import CouponsTab from "./components/CouponsTab";
 import ContactTab from "./components/ContactTab";
 import HeroTab from "./components/HeroTab";
+import ConsultationTab from "./components/ConsultationTab";
 
 const dummyStats = {
   totalRevenue: 125430,
@@ -84,6 +85,7 @@ export default function AdminPage() {
               >
                 {activeTab === "dashboard" && <Dashboard stats={dummyStats} />}
                 {activeTab === "hero" && <HeroTab />}
+                {activeTab === "consultation" && <ConsultationTab />}
                 {activeTab === "products" && <ProductManagement searchTerm={searchTerm} />}
                 {activeTab === "availability" && <CallSlotManagement />}
                 {activeTab === "bookings" && <Booking />}

@@ -17,8 +17,10 @@ import { useCart } from '../context/CartContext';
 import { ProductApi } from '../lib/ProductApi';
 import { useModal } from '../context/ModalContext';
 import { getImageUrl } from '../lib/api';
+import { useConsultationOffer } from '../context/ConsultationOfferContext';
 
 const Navbar = () => {
+  const { effectivePrice, isOfferValid } = useConsultationOffer();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [products, setProducts] = useState([]);
@@ -205,8 +207,8 @@ const Navbar = () => {
               </Link>
             )}
 
-            <motion.button whileHover={{ scale: 1.05 }} className="bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white px-5 py-2 rounded-xl text-sm font-semibold" onClick={() => openScheduleModal('Consultation', 399)}>
-              Book ₹99 Call
+            <motion.button whileHover={{ scale: 1.05 }} className="bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white px-5 py-2 rounded-xl text-sm font-semibold" onClick={() => openScheduleModal('GutTalks Root Rx Session')}>
+              {isOfferValid ? `Book ₹${effectivePrice} Call` : `Book Call (₹${effectivePrice})`}
             </motion.button>
           </div>
 
@@ -350,12 +352,12 @@ const Navbar = () => {
                 )}
                 <button
                   onClick={() => {
-                    openScheduleModal('Consultation', 399);
+                    openScheduleModal('GutTalks Root Rx Session');
                     setIsMobileMenuOpen(false);
                   }}
                   className="w-full bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white p-3 rounded-xl font-semibold flex items-center justify-center gap-2"
                 >
-                  <FiCalendar /> Book ₹99 Consultation
+                  <FiCalendar /> {isOfferValid ? `Book ₹${effectivePrice} Consultation` : `Book Consultation (₹${effectivePrice})`}
                 </button>
               </div>
             </motion.div>

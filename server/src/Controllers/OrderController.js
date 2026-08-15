@@ -200,13 +200,8 @@ export const createOrder = async (req, res) => {
     await session.commitTransaction();
 
     try {
-      // Determine recipient email
-      let userEmail = null;
-      if (user && user.email) {
-        userEmail = user.email;
-      } else if (shippingAddress && shippingAddress.email) {
-        userEmail = shippingAddress.email;
-      }
+      // Determine recipient email (Prioritize email entered in shippingAddress during checkout)
+      let userEmail = shippingAddress?.email || user?.email;
 
       if (userEmail) {
         await sendOrderStatusEmail(userEmail, {
@@ -413,14 +408,11 @@ export const updateOrderStatus = async (req, res) => {
 
     await order.save();
     try {
-      // Get user email: either from associated user or shippingAddress
-      let userEmail = null;
-      if (order.userId) {
+      // Get recipient email: Prioritize shippingAddress.email entered during order placement
+      let userEmail = order.shippingAddress?.email;
+      if (!userEmail && order.userId) {
         const user = await User.findById(order.userId).select('email');
         if (user) userEmail = user.email;
-      }
-      if (!userEmail && order.shippingAddress && order.shippingAddress.email) {
-        userEmail = order.shippingAddress.email;
       }
 
       if (userEmail) {
