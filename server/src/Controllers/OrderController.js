@@ -7,20 +7,8 @@ import mongoose from 'mongoose';
 import console from 'console';
 import { sendOrderStatusEmail } from '../utils/EmailTemplate.js';
 import { formatPhone } from '../utils/phoneUtils.js';
+
 export const createOrder = async (req, res) => {
-  let session = null;
-  let useTransaction = false;
-
-  try {
-    session = await mongoose.startSession();
-    session.startTransaction();
-    useTransaction = true;
-  } catch (sessErr) {
-    console.warn("⚠️ MongoDB standalone mode detected (No Replica Set). Proceeding without session transaction.");
-    session = null;
-    useTransaction = false;
-  }
-
   try {
     const {
       shippingAddress,
@@ -35,6 +23,7 @@ export const createOrder = async (req, res) => {
       userId,
       finalAmount
     } = req.body;
+
     let user = null;
     if (phone) {
       const formattedPhone = formatPhone(phone);
@@ -62,9 +51,7 @@ export const createOrder = async (req, res) => {
 
     for (const item of cartItems) {
       if (item.quantity > item.product.stock) {
-        throw new Error(
-          `${item.product.name} is out of stock`
-        );
+        throw new Error(`${item.product.name} is out of stock`);
       }
     }
 
@@ -78,15 +65,14 @@ export const createOrder = async (req, res) => {
     const totalAmount = finalAmount;
     const paymentStatus = paymentMethod === "online" ? "Paid" : "Pending";
 
-    // Weight
+    // Weight calculation
     let calculatedWeight = cartItems.reduce(
       (sum, item) => sum + (item.product.weight ?? 0.2) * item.quantity,
       0
     );
-
     if (totalWeight > 0) calculatedWeight = totalWeight;
 
-    // Format items
+    // Format order items
     const orderItems = cartItems.map((item) => {
       const price = item.variant?.price ?? item.product.salePrice;
       return {
@@ -103,19 +89,8 @@ export const createOrder = async (req, res) => {
     const totalDiscount = Number(discount || 0) + Number(offerDiscount || 0);
 
     // Prepare order object
-    let plainOrder = {
-      _id: new mongoose.Types.ObjectId().toString(),
-      items: orderItems.map((i) => ({ ...i, product: i.productId.toString() })),
-      shippingAddress,
-      subtotal,
-      paymentMethod,
-      discount: totalDiscount,
-      totalAmount,
-      weight: calculatedWeight
-    };
-
     const newOrder = new Order({
-      _id: plainOrder._id,
+      _id: new mongoose.Types.ObjectId().toString(),
       userId: user?._id || null,
       items: orderItems,
       shippingAddress,
@@ -130,10 +105,9 @@ export const createOrder = async (req, res) => {
       shiprocketStatus: "Order Created"
     });
 
-    const saveOptions = useTransaction && session ? { session } : {};
-    await newOrder.save(saveOptions);
+    await newOrder.save();
 
-    // Reduce stock
+    // Reduce stock atomically
     for (const item of cartItems) {
       const productId = item.product?._id?.toString() || item.product?.toString();
       const freshProduct = await Product.findById(productId);
@@ -146,12 +120,10 @@ export const createOrder = async (req, res) => {
         throw new Error(`${freshProduct.name} is out of stock`);
       }
 
-      const updateFilter = { _id: item.product._id, stock: { $gte: item.quantity } };
-      const updateDoc = { $inc: { stock: -item.quantity } };
-
-      const updated = useTransaction && session 
-        ? await Product.updateOne(updateFilter, updateDoc, { session })
-        : await Product.updateOne(updateFilter, updateDoc);
+      const updated = await Product.updateOne(
+        { _id: item.product._id, stock: { $gte: item.quantity } },
+        { $inc: { stock: -item.quantity } }
+      );
 
       if (updated.modifiedCount === 0) {
         throw new Error(`Stock mismatch for ${freshProduct.name}`);
@@ -164,13 +136,8 @@ export const createOrder = async (req, res) => {
       if (cart) {
         cart.items = [];
         cart.totalAmount = 0;
-        await cart.save(saveOptions);
+        await cart.save();
       }
-    }
-
-    if (useTransaction && session) {
-      await session.commitTransaction();
-      session.endSession();
     }
 
     // Send customer order confirmation email
@@ -221,13 +188,6 @@ export const createOrder = async (req, res) => {
     });
   } catch (error) {
     console.log("❌ ORDER CREATE ERROR:", error.message);
-    if (useTransaction && session) {
-      try {
-        await session.abortTransaction();
-        session.endSession();
-      } catch (e) {}
-    }
-
     return res.status(500).json({
       success: false,
       message: error.message || "Order creation failed"
