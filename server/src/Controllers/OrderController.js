@@ -7,15 +7,21 @@ import mongoose from 'mongoose';
 import console from 'console';
 import { sendOrderStatusEmail } from '../utils/EmailTemplate.js';
 import { formatPhone } from '../utils/phoneUtils.js';
-
 export const createOrder = async (req, res) => {
-
-
-  const session = await mongoose.startSession();
-
+  let session = null;
+  let useTransaction = false;
 
   try {
+    session = await mongoose.startSession();
     session.startTransaction();
+    useTransaction = true;
+  } catch (sessErr) {
+    console.warn("⚠️ MongoDB standalone mode detected (No Replica Set). Proceeding without session transaction.");
+    session = null;
+    useTransaction = false;
+  }
+
+  try {
     const {
       shippingAddress,
       paymentMethod,
@@ -39,8 +45,6 @@ export const createOrder = async (req, res) => {
     if (!shippingAddress) throw new Error("Shipping address required");
     if (!paymentMethod) throw new Error("Payment method required");
 
-    // Fetch cart
-
     // For guest orders (no userId)
     if (!userId) {
       if (!items || items.length === 0) throw new Error("No items provided");
@@ -51,11 +55,10 @@ export const createOrder = async (req, res) => {
       }));
     } else {
       // For logged-in users, fetch from cart
-      const cart = await Cart.findOne({ userId: user._id }).populate("items.product");
+      const cart = await Cart.findOne({ userId: user?._id }).populate("items.product");
       if (!cart || cart.items.length === 0) throw new Error("Your cart is empty");
       cartItems = cart.items;
     }
-
 
     for (const item of cartItems) {
       if (item.quantity > item.product.stock) {
@@ -64,7 +67,6 @@ export const createOrder = async (req, res) => {
         );
       }
     }
-
 
     if (!cartItems || cartItems.length === 0) throw new Error("Your cart is empty");
 
@@ -84,7 +86,6 @@ export const createOrder = async (req, res) => {
 
     if (totalWeight > 0) calculatedWeight = totalWeight;
 
-    // Format items
     // Format items
     const orderItems = cartItems.map((item) => {
       const price = item.variant?.price ?? item.product.salePrice;
@@ -113,12 +114,9 @@ export const createOrder = async (req, res) => {
       weight: calculatedWeight
     };
 
-    // -----------------------------------
-    // NOW SAVE ORDER IN DB
-    // -----------------------------------
     const newOrder = new Order({
       _id: plainOrder._id,
-      userId: user._id,
+      userId: user?._id || null,
       items: orderItems,
       shippingAddress,
       subtotal,
@@ -129,39 +127,15 @@ export const createOrder = async (req, res) => {
       paymentStatus,
       razorpay: paymentDetails || {},
       customStatus: "order_placed",
-
       shiprocketStatus: "Order Created"
     });
 
-    await newOrder.save({ session });
-
-    // -----------------------------------
-    // SAVE PAYMENT INFO (CASH / COD / OFFLINE)
-    // -----------------------------------
-    /** 
-    if (paymentMethod === "online") {
-      // Example: seller fixed payout
-      const payoutAmount = Math.round(totalAmount * 0.7); // 70%
-    
-      await payoutToFundAccount({
-        fundAccountId: "fa_RweeY0Tr8ugGMp", // 🔒 stored fund account id
-        amount: payoutAmount,
-        referenceId: newOrder._id.toString(),
-        narration: "Seller payout for order",
-      });
-    
-      newOrder.payoutstatus = "SUCCESS";
-      
-    }
-      **/
-
-
-
+    const saveOptions = useTransaction && session ? { session } : {};
+    await newOrder.save(saveOptions);
 
     // Reduce stock
     for (const item of cartItems) {
       const productId = item.product?._id?.toString() || item.product?.toString();
-
       const freshProduct = await Product.findById(productId);
 
       if (!freshProduct) {
@@ -172,14 +146,12 @@ export const createOrder = async (req, res) => {
         throw new Error(`${freshProduct.name} is out of stock`);
       }
 
-      const updated = await Product.updateOne(
-        {
-          _id: item.product._id,
-          stock: { $gte: item.quantity }
-        },
-        { $inc: { stock: -item.quantity } },
-        { session }
-      );
+      const updateFilter = { _id: item.product._id, stock: { $gte: item.quantity } };
+      const updateDoc = { $inc: { stock: -item.quantity } };
+
+      const updated = useTransaction && session 
+        ? await Product.updateOne(updateFilter, updateDoc, { session })
+        : await Product.updateOne(updateFilter, updateDoc);
 
       if (updated.modifiedCount === 0) {
         throw new Error(`Stock mismatch for ${freshProduct.name}`);
@@ -187,22 +159,23 @@ export const createOrder = async (req, res) => {
     }
 
     // Clear cart
-    if (userId) {
+    if (userId && user) {
       const cart = await Cart.findOne({ userId: user._id });
       if (cart) {
         cart.items = [];
         cart.totalAmount = 0;
-        await cart.save({ session });
+        await cart.save(saveOptions);
       }
-
     }
 
-    await session.commitTransaction();
+    if (useTransaction && session) {
+      await session.commitTransaction();
+      session.endSession();
+    }
 
+    // Send customer order confirmation email
     try {
-      // Determine recipient email (Prioritize email entered in shippingAddress during checkout)
       let userEmail = shippingAddress?.email || user?.email;
-
       if (userEmail) {
         await sendOrderStatusEmail(userEmail, {
           orderId: newOrder._id.toString(),
@@ -220,9 +193,26 @@ export const createOrder = async (req, res) => {
       }
     } catch (emailErr) {
       console.error("Failed to send order confirmation email:", emailErr.message);
-      // Do not break the order flow
     }
-    session.endSession();
+
+    // Send admin notification email to help@guttalks.in
+    try {
+      await sendOrderStatusEmail("help@guttalks.in", {
+        orderId: newOrder._id.toString(),
+        status: "Order Placed",
+        customStatus: `[ADMIN NOTIFICATION] Order Placed by ${shippingAddress?.fullName} (${shippingAddress?.email})`,
+        items: orderItems.map(item => ({
+          product: { name: item.name },
+          quantity: item.quantity,
+          price: item.priceAtPurchase
+        })),
+        totalAmount: newOrder.totalAmount,
+        shippingAddress: newOrder.shippingAddress,
+        updatedAt: newOrder.createdAt
+      });
+    } catch (adminEmailErr) {
+      console.error("Failed to send admin order notification email:", adminEmailErr.message);
+    }
 
     return res.status(201).json({
       success: true,
@@ -230,17 +220,21 @@ export const createOrder = async (req, res) => {
       order: newOrder,
     });
   } catch (error) {
-  console.log("❌ ORDER CREATE ERROR:", error.message);
+    console.log("❌ ORDER CREATE ERROR:", error.message);
+    if (useTransaction && session) {
+      try {
+        await session.abortTransaction();
+        session.endSession();
+      } catch (e) {}
+    }
 
-  await session.abortTransaction();
-  session.endSession();
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Order creation failed"
+    });
+  }
+};
 
-  return res.status(500).json({
-    success: false,
-    message: error.message || "Order creation failed"
-  });
-}
-}
 export const getOrders = async (req, res) => {
   try {
 

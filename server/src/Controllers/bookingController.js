@@ -132,6 +132,8 @@ export const initiateBooking = async (req, res) => {
       });
     }
     const userEmail = guestInfo?.email || userDetails?.email || req.user?.email;
+    const customerName = guestInfo?.name || userDetails?.name || req.user?.name || 'Customer';
+
     if (userEmail) {
       try {
         await sendBookingConfirmationEmail(userEmail, {
@@ -141,11 +143,26 @@ export const initiateBooking = async (req, res) => {
           endTime,
           meetLink,
           price,
-          userName: guestInfo?.name || userDetails?.name || req.user?.name
+          userName: customerName
         });
       } catch (emailErr) {
-        console.error('⚠️ Booking confirmation email failed (booking created successfully):', emailErr.message || emailErr);
+        console.error('⚠️ Customer booking confirmation email failed:', emailErr.message || emailErr);
       }
+    }
+
+    // Send notification email to admin at help@guttalks.in
+    try {
+      await sendBookingConfirmationEmail('help@guttalks.in', {
+        bookingId,
+        date: startOfDay,
+        startTime,
+        endTime,
+        meetLink,
+        price,
+        userName: `[ADMIN NOTIFICATION] Customer: ${customerName} (${userEmail || 'N/A'})`
+      });
+    } catch (adminEmailErr) {
+      console.error('⚠️ Admin booking notification email failed:', adminEmailErr.message || adminEmailErr);
     }
 
 

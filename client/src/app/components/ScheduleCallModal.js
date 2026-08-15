@@ -350,11 +350,11 @@ useEffect(() => {
 const handleLoginRedirect = () => {
   // Store pending booking info before redirect
   localStorage.setItem('pendingBooking', 'true');
-  localStorage.setItem('pendingProduct', productName);
-  localStorage.setItem('pendingPrice', productPrice.toString());
+  localStorage.setItem('pendingProduct', productName || 'GutTalks Root Rx Session');
+  localStorage.setItem('pendingPrice', (CONSULTATION_PRICE || 99).toString());
   localStorage.setItem('redirectAfterLogin', window.location.pathname);
+  onClose();
   router.push('/login');
-  onClose(); // close the modal while redirecting
 };
 
   const hasAvailableSlots = (date) => availableDates.some(d => isSameDay(new Date(d), date));
@@ -405,11 +405,11 @@ const validateMcqs = () => {
               <div className="w-16 h-16 bg-gradient-to-r from-[#18606D] to-[#2A7F8F] rounded-full flex items-center justify-center mx-auto mb-4">
                 <FiCreditCard className="text-2xl text-white" />
               </div>
-              <h3 className="text-xl font-bold text-[#1A4D3E] mb-2">Special Offer!</h3>
+              <h3 className="text-xl font-bold text-[#1A4D3E] mb-2">{isOfferValid ? "Special Offer!" : "Root Rx Consultation"}</h3>
               <p className="text-[#64748B] mb-3">
-                Get this consultation for only <span className="text-[#18606D] font-bold text-xl">₹99</span>
+                Get this consultation for <span className="text-[#18606D] font-bold text-xl">₹{CONSULTATION_PRICE}</span>
               </p>
-              <p className="text-sm text-[#64748B] mb-6">(Regular price: ₹{productPrice})</p>
+              {isOfferValid && <p className="text-sm text-[#64748B] mb-6">(Was: ₹{basePrice})</p>}
               <button
                 onClick={handleLoginRedirect}
                 className="w-full bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2"
