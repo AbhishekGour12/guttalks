@@ -327,13 +327,13 @@ const InvoicePDF = ({ booking }) => {
           <Text style={styles.noteTitle}>Important Information:</Text>
           <Text style={styles.noteText}>• Rescheduling requires at least 24 hours prior notice from your dashboard.</Text>
           <Text style={styles.noteText}>• Please join the consultation 5 minutes early to test your audio and video.</Text>
-          <Text style={styles.noteText}>• For any queries regarding this invoice, reach hello@guttalks.com.</Text>
+          <Text style={styles.noteText}>• For any queries regarding this invoice, reach help@guttalks.in.</Text>
         </View>
 
         {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>GutTalks – Your partner in digestive wellness</Text>
-          <Text style={styles.footerText}>123 Gut Health Street, Wellness City, IN 560001</Text>
+          <Text style={styles.footerText}>274-275, Bombay Nagar, Jalandhar, Punjab, IN</Text>
           <Text style={styles.footerText}>This is a system generated tax invoice and does not require a physical signature.</Text>
         </View>
       </Page>

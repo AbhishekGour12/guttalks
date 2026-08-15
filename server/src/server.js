@@ -25,6 +25,7 @@ import { Server } from "socket.io";
 import http from "http";
 import { createAdmin } from "./services/createAdmin.js";
 import { deletePastSlots } from "./Controllers/availablityController.js";
+import { seedMCQs } from "./seedMCQs.js";
 
 const app = express();
 
@@ -67,8 +68,9 @@ MongoDBConnect().then(async () => {
     if (deletedSlots > 0 || deletedHolds > 0) {
       console.log(`Cleaned up ${deletedSlots} past slot(s) and ${deletedHolds} hold(s)`);
     }
+    await seedMCQs({ isStandalone: false });
   } catch (err) {
-    console.error("Past slot cleanup failed:", err.message);
+    console.error("Past slot cleanup / MCQ check failed:", err.message);
   }
 });
 

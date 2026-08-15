@@ -26,7 +26,7 @@ export default function CancellationPolicy() {
 
       <h2>Need Help?</h2>
       <p>
-        Email <strong>hello@guttalks.com</strong> or visit <strong>274-275, Bombay Nagar, Jalandhar</strong> (10 AM – 9 PM IST, all days).
+        Email <strong>help@guttalks.in</strong> or visit <strong>274-275, Bombay Nagar, Jalandhar</strong> (10 AM – 9 PM IST, all days).
       </p>
     </LegalPageLayout>
   );

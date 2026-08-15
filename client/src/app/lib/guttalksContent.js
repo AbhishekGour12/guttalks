@@ -3,7 +3,7 @@
 export const CONTACT = {
   address: "274-275, Bombay Nagar, Jalandhar",
   hours: "10 AM – 9 PM IST (All days working)",
-  email: "hello@guttalks.com",
+  email: "help@guttalks.in",
   phoneDisplay: "+91 98765 43210",
   phoneTel: "+919876543210",
   whatsapp: "https://wa.me/919876543210",

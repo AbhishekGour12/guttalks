@@ -157,7 +157,7 @@ export const sendOrderStatusEmail = async (userEmail, orderDetails) => {
       <div style="text-align: center; color: "white">
         <a href="${process.env.FRONTEND_URL}/dashboard" class="btn">View Order Details</a>
       </div>
-      <p style="font-size: 12px; margin-top: 20px;">If you have any questions, please contact us at hello@guttalks.in</p>
+      <p style="font-size: 12px; margin-top: 20px;">If you have any questions, please contact us at help@guttalks.in or +91 98765 43210.</p>
     </div>
     <div class="footer">
       <p>GutTalks – Your digestive wellness partner</p>
@@ -453,11 +453,11 @@ export const sendBookingConfirmationEmail = async (userEmail, bookingDetails) =>
   </a>
 </div>
       
-      <p class="important">⚠️ For any queries regarding this invoice or your consultation, please contact us at hello@guttalks.com or +91 98765 43210.</p>
+      <p class="important">⚠️ For any queries regarding this invoice or your consultation, please contact us at help@guttalks.in or +91 98765 43210.</p>
     </div>
     <div class="footer">
       <p>GutTalks – Your partner in digestive wellness</p>
-      <p>123 Gut Health Street, Wellness City, IN 560001</p>
+      <p>274-275, Bombay Nagar, Jalandhar, Punjab, IN</p>
       <p>&copy; ${new Date().getFullYear()} GutTalks. All rights reserved.</p>
       <p style="margin-top: 8px;">This is a system generated invoice – no signature required.</p>
     </div>
@@ -519,7 +519,7 @@ export const sendRescheduleEmail = async (userEmail, details) => {
    Join Consultation
 </a>
       </div>
-      <p style="font-size: 12px; margin-top: 20px;">If the new time doesn't work for you, please contact us to reschedule again.</p>
+      <p style="font-size: 12px; margin-top: 20px;">If the new time doesn't work for you, please contact us at help@guttalks.in or +91 98765 43210 to reschedule again.</p>
     </div>
     <div class="footer">
       <p>GutTalks – Your digestive wellness partner</p>
@@ -666,7 +666,7 @@ export const sendBookingStatusEmail = async (userEmail, details) => {
         <a href="${process.env.FRONTEND_URL}/dashboard" class="btn" style="color:#ffffff !important;">Go to Dashboard</a>
       </div>
       
-      <p style="font-size: 12px; margin-top: 25px; color: #64748B;">If you have any questions, please contact us at hello@guttalks.com.</p>
+      <p style="font-size: 12px; margin-top: 25px; color: #64748B;">If you have any questions, please contact us at help@guttalks.in or +91 98765 43210.</p>
     </div>
     <div class="footer">
       <p>GutTalks – Your partner in digestive wellness</p>

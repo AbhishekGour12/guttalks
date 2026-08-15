@@ -287,12 +287,12 @@ const sendReplyEmail = async (contact, replyMessage) => {
             <p style="margin-top: 10px;">${replyMessage}</p>
         </div>
         
-        <p>If you have any further questions, feel free to reply to this email or visit our <a href="${process.env.FRONTEND_URL || 'https://guttalks.com'}/faq">FAQ page</a>.</p>
+        <p>If you have any further questions, feel free to reply to this email or visit our <a href="${process.env.FRONTEND_URL || 'https://guttalks.in'}/faq">FAQ page</a>.</p>
         
         <div class="signature">
             <p><strong>Best regards,</strong><br>
             The GutTalks Support Team<br>
-            <a href="mailto:hello@guttalks.com">hello@guttalks.com</a> | <a href="tel:+919876543210">+91 98765 43210</a></p>
+            <a href="mailto:help@guttalks.in">help@guttalks.in</a> | <a href="tel:+919876543210">+91 98765 43210</a></p>
         </div>
         
         <div class="footer">
@@ -695,10 +695,10 @@ const userMailOptions = {
                 <div class="contact-info">
                     <strong>📞 Need Immediate Assistance?</strong>
                     <div class="phone-number">+91 98765 43210</div>
-                    <div class="hours">Available Monday-Saturday: 9 AM - 7 PM IST</div>
+                    <div class="hours">Available 10 AM – 9 PM IST (All days working)</div>
                     <p style="margin-top: 10px; font-size: 14px;">Our support team is here to help with any gut health queries.</p>
                 </div>
-                <a href="${process.env.FRONTEND_URL || 'https://guttalks.com'}/products" class="cta-button">🍏 Explore Our Gut Health Programs</a>
+                <a href="${process.env.FRONTEND_URL || 'https://guttalks.in'}/products" class="cta-button">🍏 Explore Our Gut Health Programs</a>
             </div>
             <div class="footer">
                 <div class="social-links">
