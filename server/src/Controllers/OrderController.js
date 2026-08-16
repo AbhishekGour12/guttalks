@@ -89,8 +89,6 @@ export const createOrder = async (req, res) => {
       };
     });
 
-    const totalDiscount = Number(discount || 0) + Number(offerDiscount || 0);
-
     // Prepare order object
     const newOrder = new Order({
       _id: new mongoose.Types.ObjectId().toString(),
