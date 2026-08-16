@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
-  FiMapPin, FiPhone, FiMail, FiClock, FiSend, FiFacebook,
+  FiMapPin, FiPhone, FiMail, FiClock, FiSend, FiFacebook, FiTwitter,
   FiInstagram, FiLinkedin, FiChevronDown, FiHelpCircle, FiMessageSquare,
 } from "react-icons/fi";
 import { FaWhatsapp, FaGoogle, FaHeadset, FaShieldAlt, FaFlask, FaUserMd } from "react-icons/fa";
@@ -64,6 +64,7 @@ export default function ContactPage() {
 
   const socialLinks = [
     { name: "Facebook", icon: FiFacebook, url: "https://www.facebook.com/people/Gut-Talks/61593081512303/", color: "#1877F2" },
+    { name: "Twitter", icon: FiTwitter, url: "https://x.com/guttalks_", color: "#1DA1F2" },
     { name: "Instagram", icon: FiInstagram, url: "https://www.instagram.com/gut_talks_/", color: "#E4405F" },
     { name: "LinkedIn", icon: FiLinkedin, url: "https://www.linkedin.com/in/gut-talks-7b655042a/", color: "#0077B5" },
     { name: "Google", icon: FaGoogle, url: "https://share.google/7qbFlUldgr8UErTLE", color: "#4285F4" },

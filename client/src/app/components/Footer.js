@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { FaHeart, FaFacebook, FaInstagram, FaLinkedin, FaGoogle, FaYoutube } from "react-icons/fa";
+import { FaHeart, FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaGoogle, FaYoutube } from "react-icons/fa";
 import { FiMail, FiPhone, FiMapPin } from "react-icons/fi";
 import { CONTACT } from "../lib/guttalksContent";
 
@@ -40,6 +40,7 @@ export default function Footer() {
 
   const socialLinks = [
     { icon: FaFacebook, href: "https://www.facebook.com/people/Gut-Talks/61593081512303/", label: "Facebook" },
+    { icon: FaTwitter, href: "https://x.com/guttalks_", label: "Twitter" },
     { icon: FaInstagram, href: "https://www.instagram.com/gut_talks_/", label: "Instagram" },
     { icon: FaLinkedin, href: "https://www.linkedin.com/in/gut-talks-7b655042a/", label: "LinkedIn" },
     { icon: FaGoogle, href: "https://share.google/7qbFlUldgr8UErTLE", label: "Google" },
