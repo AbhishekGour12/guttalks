@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTimes, FaPlus, FaMinus, FaTrash, FaArrowLeft, FaWallet, FaMoneyBillWave } from "react-icons/fa";
 
@@ -169,21 +169,30 @@ useEffect(() => { fetchCart(); }, [user]);
   }, []);
   
   // ================================
-  // RESET LOGIC
+  // RESET LOGIC (only when cart contents actually change)
   // ================================
+  const cartSignature = useMemo(() => {
+    return (cartItems || []).map(i => `${i.product?._id || i.productId || i.product}_${i.quantity}_${JSON.stringify(i.variant || {})}`).join('|');
+  }, [cartItems]);
+
+  const prevCartSignatureRef = useRef(cartSignature);
+
   useEffect(() => {
-    if (couponDiscount > 0) {
-      setCouponDiscount(0);
-      setCouponCode("");
-      setDeliveryETA(null);
-      setIsCOD(false);
-      setShowCODSummary(false);
-      if (checkoutStep === 'payment' || checkoutStep === 'coupon') {
-        setCheckoutStep('address'); 
-        toast("Cart updated. Please recalculate shipping.");
+    if (prevCartSignatureRef.current !== cartSignature) {
+      prevCartSignatureRef.current = cartSignature;
+      if (couponDiscount > 0) {
+        setCouponDiscount(0);
+        setCouponCode("");
+        setDeliveryETA(null);
+        setIsCOD(false);
+        setShowCODSummary(false);
+        if (checkoutStep === 'payment' || checkoutStep === 'coupon') {
+          setCheckoutStep('address'); 
+          toast("Cart updated. Please recalculate shipping.");
+        }
       }
     }
-  }, [mappedCart, cartItems]);
+  }, [cartSignature]);
 
   // ================================
   // 3. CALCULATION
@@ -219,11 +228,13 @@ useEffect(() => { fetchCart(); }, [user]);
   // ================================
   // 4. ACTIONS
   // ================================
-  const applyCoupon = async () => {
-    if (!couponCode.trim()) return toast.error("Enter valid coupon.");
+  const applyCoupon = async (codeToApply) => {
+    const code = typeof codeToApply === "string" ? codeToApply : couponCode;
+    if (!code || !code.trim()) return toast.error("Enter valid coupon.");
+    setCouponCode(code);
     setLoading(true);
     try {
-      const res = await couponAPI.applyCoupon(couponCode, subtotal);
+      const res = await couponAPI.applyCoupon(code.trim(), subtotal);
       setCouponDiscount(res.discount);
       toast.success("Coupon applied!");
     } catch (err) {
@@ -671,8 +682,8 @@ useEffect(() => { fetchCart(); }, [user]);
                               </p>
                             </div>
                             <button 
-                              onClick={() => setCouponCode(cp.code)}
-                              className="text-[#2A7F8F] font-bold text-sm hover:underline"
+                              onClick={() => applyCoupon(cp.code)}
+                              className="text-[#2A7F8F] font-bold text-sm hover:underline cursor-pointer"
                             >
                               APPLY
                             </button>

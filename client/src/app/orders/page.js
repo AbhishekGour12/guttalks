@@ -97,7 +97,25 @@ const MyOrdersPage = () => {
         <h2 className="text-3xl font-bold text-[#1A4D3E] mb-8">My Orders</h2>
 
         {orders.length === 0 && (
-          <p className="text-center text-[#64748B] mt-10">You have no orders yet.</p>
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl p-10 text-center border border-[#D9EEF2] shadow-sm my-8"
+          >
+            <div className="w-16 h-16 bg-[#E8F4F7] rounded-full flex items-center justify-center mx-auto mb-4 text-[#18606D]">
+              <FaBox className="text-2xl" />
+            </div>
+            <h3 className="text-xl font-bold text-[#1A4D3E] mb-2">You have no orders yet</h3>
+            <p className="text-sm text-[#64748B] max-w-md mx-auto mb-6">
+              Looks like you haven't placed any orders yet. Discover our personalized gut health tests and wellness programs to get started!
+            </p>
+            <button
+              onClick={() => router.push("/#products")}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white px-6 py-3 rounded-xl font-bold hover:shadow-md active:scale-95 transition-all cursor-pointer"
+            >
+              Browse Products & Programs →
+            </button>
+          </motion.div>
         )}
 
         {trackId && (

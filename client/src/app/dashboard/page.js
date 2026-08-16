@@ -154,8 +154,8 @@ const Dashboard = () => {
                 <FaBox className="text-4xl text-[#64748B] mx-auto mb-3" />
                 <p className="text-[#1A4D3E]">No orders yet</p>
                 <button
-                  onClick={() => router.push("/products")}
-                  className="mt-3 text-[#18606D] underline"
+                  onClick={() => router.push("/#products")}
+                  className="mt-3 text-[#18606D] underline cursor-pointer hover:text-[#2A7F8F] font-medium"
                 >
                   Browse Products →
                 </button>

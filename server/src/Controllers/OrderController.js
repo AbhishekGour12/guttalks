@@ -62,7 +62,10 @@ export const createOrder = async (req, res) => {
       return sum + (price * item.quantity);
     }, 0);
 
-    const totalAmount = finalAmount;
+    const totalDiscount = Number(discount || 0) + Number(offerDiscount || 0);
+    const totalAmount = (finalAmount !== undefined && finalAmount !== null)
+      ? Number(finalAmount)
+      : Math.max(0, subtotal - totalDiscount);
     const paymentStatus = paymentMethod === "online" ? "Paid" : "Pending";
 
     // Weight calculation
@@ -162,9 +165,10 @@ export const createOrder = async (req, res) => {
       console.error("Failed to send order confirmation email:", emailErr.message);
     }
 
-    // Send admin notification email to help@guttalks.in
+    // Send admin notification email to admin
     try {
-      await sendOrderStatusEmail("help@guttalks.in", {
+      const adminEmail = process.env.ADMIN_EMAIL || "help@guttalks.in";
+      await sendOrderStatusEmail(adminEmail, {
         orderId: newOrder._id.toString(),
         status: "Order Placed",
         customStatus: `[ADMIN NOTIFICATION] Order Placed by ${shippingAddress?.fullName} (${shippingAddress?.email})`,
@@ -367,6 +371,7 @@ export const updateOrderStatus = async (req, res) => {
 
     await order.save();
     try {
+      const adminEmail = process.env.ADMIN_EMAIL || "help@guttalks.in";
       // Get recipient email: Prioritize shippingAddress.email entered during order placement
       let userEmail = order.shippingAddress?.email;
       if (!userEmail && order.userId) {
@@ -374,25 +379,33 @@ export const updateOrderStatus = async (req, res) => {
         if (user) userEmail = user.email;
       }
 
-      if (userEmail) {
-        // Prepare items for email template
-        const emailItems = order.items.map(item => ({
-          product: { name: item.name },
-          quantity: item.quantity,
-          price: item.priceAtPurchase
-        }));
+      // Prepare items for email template
+      const emailItems = order.items.map(item => ({
+        product: { name: item.name },
+        quantity: item.quantity,
+        price: item.priceAtPurchase
+      }));
 
-        await sendOrderStatusEmail(userEmail, {
-          orderId: order._id.toString(),
-          trackingId: order.trackingId || order.awbCode || "",
-          status: customStatus,          // main status
-          customStatus: customStatus,
-          items: emailItems,
-          totalAmount: order.totalAmount,
-          shippingAddress: order.shippingAddress,
-          updatedAt: order.customStatusUpdatedAt
-        });
+      const emailPayload = {
+        orderId: order._id.toString(),
+        trackingId: order.trackingId || order.awbCode || "",
+        status: customStatus,          // main status
+        customStatus: customStatus,
+        items: emailItems,
+        totalAmount: order.totalAmount,
+        shippingAddress: order.shippingAddress,
+        updatedAt: order.customStatusUpdatedAt
+      };
+
+      if (userEmail) {
+        await sendOrderStatusEmail(userEmail, emailPayload);
       }
+
+      // Send admin status update email to admin as well
+      await sendOrderStatusEmail(adminEmail, {
+        ...emailPayload,
+        customStatus: `[ADMIN NOTIFICATION] Order #${order._id.toString()} Status Updated to '${customStatus}'`
+      });
     } catch (emailErr) {
       console.error("Failed to send order status update email:", emailErr.message);
       // Do not break the API response
