@@ -406,10 +406,16 @@ const validateMcqs = () => {
                 <FiCreditCard className="text-2xl text-white" />
               </div>
               <h3 className="text-xl font-bold text-[#1A4D3E] mb-2">{isOfferValid ? "Special Offer!" : "Root Rx Consultation"}</h3>
-              <p className="text-[#64748B] mb-3">
-                Get this consultation for <span className="text-[#18606D] font-bold text-xl">₹{CONSULTATION_PRICE}</span>
+              <p className="text-[#64748B] mb-4">
+                Get this consultation for {isOfferValid ? (
+                  <>
+                    <span className="line-through text-gray-400 text-sm mr-1">₹{basePrice}</span>
+                    <span className="text-[#18606D] font-bold text-xl">₹{offerPrice}</span>
+                  </>
+                ) : (
+                  <span className="text-[#18606D] font-bold text-xl">₹{basePrice}</span>
+                )}
               </p>
-              {isOfferValid && <p className="text-sm text-[#64748B] mb-6">(Was: ₹{basePrice})</p>}
               <button
                 onClick={handleLoginRedirect}
                 className="w-full bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2"

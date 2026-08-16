@@ -308,7 +308,7 @@ export const trackUserOrder = async (req, res) => {
     const data = {
       success: true,
       orderId: order._id,
-      awb: order.awbCode || "N/A",
+      awb: order.trackingId || order.awbCode || "N/A",
       courier: "Local Partner / Self-Shipped",
       current_status: currentStatus,
       tracking_data: {
@@ -329,7 +329,7 @@ export const getAllOrders = async (req, res) => {
   try {
     console.log("Fetching all orders for admin...");
     const orders = await Order.find().sort({ createdAt: -1 }).populate("items.productId")   // product details
-      .populate("userId", "username email phone") // user details;
+      .populate("userId", "username email phone"); // user details;
 
     res.json({
       success: true,
@@ -342,10 +342,11 @@ export const getAllOrders = async (req, res) => {
     console.log(error.message)
   }
 };
+
 export const updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { customStatus } = req.body;
+    const { customStatus, trackingId } = req.body;
 
     if (!customStatus) {
       return res.status(400).json({ error: 'Status is required' });
@@ -359,6 +360,10 @@ export const updateOrderStatus = async (req, res) => {
     order.customStatus = customStatus;
     order.customStatusUpdatedAt = new Date();
 
+    if (trackingId !== undefined && trackingId !== null) {
+      order.trackingId = trackingId;
+      order.awbCode = trackingId;
+    }
 
     await order.save();
     try {
@@ -379,6 +384,7 @@ export const updateOrderStatus = async (req, res) => {
 
         await sendOrderStatusEmail(userEmail, {
           orderId: order._id.toString(),
+          trackingId: order.trackingId || order.awbCode || "",
           status: customStatus,          // main status
           customStatus: customStatus,
           items: emailItems,

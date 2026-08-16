@@ -213,6 +213,16 @@ const MyOrdersPage = () => {
                       </p>
                     </div>
 
+                    {/* Tracking ID */}
+                    {(order.trackingId || order.awbCode) && (
+                      <div className="flex items-center gap-3 bg-[#E8F4F7] p-3 rounded-xl border border-[#D9EEF2]">
+                        <FaTruck className="text-[#18606D]" />
+                        <p className="text-[#1A4D3E] text-sm">
+                          Tracking ID / AWB: <span className="font-bold text-[#18606D]">{order.trackingId || order.awbCode}</span>
+                        </p>
+                      </div>
+                    )}
+
                     {/* Order Progress Timeline */}
                     <div className="mt-3">
                       <p className="font-semibold text-[#1A4D3E] mb-3">Order Progress</p>

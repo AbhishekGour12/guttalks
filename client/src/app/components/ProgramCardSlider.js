@@ -86,10 +86,6 @@ export default function ProgramCardSlider() {
                 <div className="p-4 sm:p-5 bg-white">
                   <h3 className="font-bold text-[#1A4D3E] text-lg leading-snug line-clamp-2">{program.shortTitle || program.title}</h3>
                   <p className="text-sm text-[#64748B] mt-1 line-clamp-2">{program.tagline}</p>
-                  <div className="mt-3 flex items-baseline gap-2 flex-wrap">
-                    <span className="text-xl font-bold text-[#18606D]">{program.price}</span>
-                    {program.priceNote && <span className="text-[11px] text-[#94A3B8]">{program.priceNote}</span>}
-                  </div>
                   {program.isConsultation ? (
                     <button
                       type="button"
@@ -125,14 +121,6 @@ export default function ProgramCardSlider() {
           <div>
             <h3 className="text-xl font-bold text-[#1A4D3E] mb-2">{active.title}</h3>
             <p className="text-sm text-[#64748B] leading-relaxed">{active.tagline}</p>
-            <p className="mt-2 text-lg font-bold text-[#18606D]">
-              {active.isConsultation ? `₹${effectivePrice}` : active.price}
-              {active.isConsultation ? (
-                isOfferValid ? <span className="ml-2 text-xs font-normal text-[#94A3B8]">Introductory offer · Was ₹{basePrice}</span> : null
-              ) : (
-                active.priceNote ? <span className="ml-2 text-xs font-normal text-[#94A3B8]">{active.priceNote}</span> : null
-              )}
-            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">

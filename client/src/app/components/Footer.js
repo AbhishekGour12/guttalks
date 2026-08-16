@@ -1,19 +1,29 @@
 "use client";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { FaHeart, FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaYoutube } from "react-icons/fa";
+import { FaHeart, FaFacebook, FaInstagram, FaLinkedin, FaGoogle, FaYoutube } from "react-icons/fa";
 import { FiMail, FiPhone, FiMapPin } from "react-icons/fi";
 import { CONTACT } from "../lib/guttalksContent";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
+  const handleLinkClick = (e, href) => {
+    if (href === "/#products") {
+      const el = document.getElementById("products");
+      if (el) {
+        e.preventDefault();
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
+
   const footerLinks = {
     Company: [
       { name: "Home", href: "/" },
       { name: "About Us", href: "/about" },
       { name: "Contact", href: "/contact" },
-      { name: "Products", href: "/products" },
+      { name: "Products", href: "/#products" },
     ],
     Legal: [
       { name: "Privacy Policy", href: "/privacy-policy" },
@@ -29,10 +39,10 @@ export default function Footer() {
   };
 
   const socialLinks = [
-    { icon: FaFacebook, href: "https://facebook.com/guttalks", label: "Facebook" },
-    { icon: FaTwitter, href: "https://twitter.com/guttalks", label: "Twitter" },
-    { icon: FaInstagram, href: "https://instagram.com/guttalks", label: "Instagram" },
-    { icon: FaLinkedin, href: "https://linkedin.com/company/guttalks", label: "LinkedIn" },
+    { icon: FaFacebook, href: "https://www.facebook.com/people/Gut-Talks/61593081512303/", label: "Facebook" },
+    { icon: FaInstagram, href: "https://www.instagram.com/gut_talks_/", label: "Instagram" },
+    { icon: FaLinkedin, href: "https://www.linkedin.com/in/gut-talks-7b655042a/", label: "LinkedIn" },
+    { icon: FaGoogle, href: "https://share.google/7qbFlUldgr8UErTLE", label: "Google" },
     { icon: FaYoutube, href: "https://youtube.com/c/guttalks", label: "YouTube" },
   ];
 
@@ -77,6 +87,7 @@ export default function Footer() {
                 <li key={link.name}>
                   <Link 
                     href={link.href} 
+                    onClick={(e) => handleLinkClick(e, link.href)}
                     className="text-sm text-[#CFE8EC] hover:text-white transition-colors duration-200"
                   >
                     {link.name}

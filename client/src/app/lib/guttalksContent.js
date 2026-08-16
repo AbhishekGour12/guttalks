@@ -4,9 +4,9 @@ export const CONTACT = {
   address: "274-275, Bombay Nagar, Jalandhar",
   hours: "10 AM – 9 PM IST (All days working)",
   email: "help@guttalks.in",
-  phoneDisplay: "+91 98765 43210",
-  phoneTel: "+919876543210",
-  whatsapp: "https://wa.me/919876543210",
+  phoneDisplay: "+91 98888 03053",
+  phoneTel: "+919888803053",
+  whatsapp: "https://wa.me/919888803053",
   mapEmbed:
     "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3407.5!2d75.5762!3d31.3260!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391a5a5747a9eb8d%3A0xe4b0f0f0f0f0f0f0!2sBombay%20Nagar%2C%20Jalandhar%2C%20Punjab!5e0!3m2!1sen!2sin!4v1710000000000!5m2!1sen!2sin",
 };

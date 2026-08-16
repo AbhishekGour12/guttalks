@@ -1,11 +1,13 @@
 "use client";
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Image from 'next/image';
+import ScheduleCallModal from './ScheduleCallModal';
 
 const ProblemSolutionSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
 
   // SVG Icons for Problem Section - Enhanced
   const ProblemIcons = {
@@ -443,6 +445,7 @@ const ProblemSolutionSection = () => {
                   <span className="text-xs text-[#64748B] font-medium">10,000+ happy clients</span>
                 </div>
                 <motion.button
+                  onClick={() => setShowScheduleModal(true)}
                   whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(24, 96, 109, 0.3)" }}
                   whileTap={{ scale: 0.98 }}
                   className="px-5 py-2.5 bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white text-sm font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2 group"
@@ -483,6 +486,12 @@ const ProblemSolutionSection = () => {
 
       {/* Decorative Bottom Element */}
       <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#F4FAFB] to-transparent pointer-events-none z-20" />
+
+      <ScheduleCallModal 
+        isOpen={showScheduleModal} 
+        onClose={() => setShowScheduleModal(false)} 
+        productName="GutTalks Root Rx Session" 
+      />
     </section>
   );
 };

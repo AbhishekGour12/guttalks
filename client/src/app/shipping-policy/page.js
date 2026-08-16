@@ -24,7 +24,7 @@ export default function ShippingPolicy() {
       <p>If your package arrives damaged, please contact us within 48 hours with photos of the damage. We will arrange a replacement or refund. For lost packages, we will file a claim with the courier and keep you updated.</p>
 
       <h2>Contact Us</h2>
-      <p>For shipping-related questions, email <strong>help@guttalks.in</strong> or call <strong>+91 98765 43210</strong>.</p>
+      <p>For shipping-related questions, email <strong>help@guttalks.in</strong> or call <strong>+91 98888 03053</strong>.</p>
     </LegalPageLayout>
   );
 }

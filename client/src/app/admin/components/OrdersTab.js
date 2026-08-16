@@ -149,7 +149,8 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
     setUpdatingStatus(orderId);
     try {
       await api.put(`/admin/${orderId}/status`, {
-        customStatus
+        customStatus,
+        trackingId
       });
       toast.success('Order status updated');
       fetchOrders();
@@ -305,7 +306,7 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
                           onClick={() => {
                             setSelectedStatusOrder(order);
                             setNewStatus(order.customStatus || 'order_placed');
-                            setTrackingIdInput(order.orderId || '');
+                            setTrackingIdInput(order.trackingId || order.awbCode || '');
                             setShowStatusModal(true);
                           }}
                           className="text-xs text-[#18606D] hover:underline"
@@ -313,8 +314,8 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
                           Update
                         </button>
                       </div>
-                      {order.orderId && (
-                        <p className="text-xs text-[#64748B] mt-1">Tracking: {order.orderId}</p>
+                      {(order.trackingId || order.awbCode) && (
+                        <p className="text-xs text-[#64748B] mt-1">Tracking: {order.trackingId || order.awbCode}</p>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -376,7 +377,7 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
                     onClick={() => {
                       setSelectedStatusOrder(order);
                       setNewStatus(order.customStatus || 'order_placed');
-                      setTrackingIdInput(order.orderId || '');
+                      setTrackingIdInput(order.trackingId || order.awbCode || '');
                       setShowStatusModal(true);
                     }}
                     className="text-xs text-[#18606D]"
@@ -384,7 +385,7 @@ const OrdersTab = ({ orders: initialOrders = [], searchTerm = "" }) => {
                     Update
                   </button>
                 </div>
-                {order.trackingId && <p className="text-xs text-[#64748B] mt-1">Tracking: {order.orderId}</p>}
+                {(order.trackingId || order.awbCode) && <p className="text-xs text-[#64748B] mt-1">Tracking: {order.trackingId || order.awbCode}</p>}
               </div>
             </motion.div>
           );
@@ -555,7 +556,7 @@ const OrderDetailsModal = ({ order, onClose }) => {
               <p>GST: <span className="font-semibold">₹{order.gstAmount?.toFixed(2)}</span></p>
               <p>Shipping: <span className="font-semibold">₹{order.shippingCharge?.toFixed(2)}</span></p>
               {order.discount ? <p>Discount: <span className="font-semibold text-green-700">-₹{order.discount?.toFixed(2)}</span></p> : null}
-              {order.trackingId && <p>Tracking ID: <span className="font-semibold">{order.orderId}</span></p>}
+              {(order.trackingId || order.awbCode) ? <p>Tracking ID: <span className="font-semibold">{order.trackingId || order.awbCode}</span></p> : null}
             </div>
             <div className="text-right">
               <p className="text-xs text-[#64748B]">Total Amount</p>

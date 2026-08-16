@@ -3,10 +3,10 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
-  FiMapPin, FiPhone, FiMail, FiClock, FiSend, FiFacebook, FiTwitter,
+  FiMapPin, FiPhone, FiMail, FiClock, FiSend, FiFacebook,
   FiInstagram, FiLinkedin, FiChevronDown, FiHelpCircle, FiMessageSquare,
 } from "react-icons/fi";
-import { FaWhatsapp, FaHeadset, FaShieldAlt, FaFlask, FaUserMd } from "react-icons/fa";
+import { FaWhatsapp, FaGoogle, FaHeadset, FaShieldAlt, FaFlask, FaUserMd } from "react-icons/fa";
 import toast from "react-hot-toast";
 import api from "../lib/api";
 import { CONTACT, SUPPORT_TOPICS, FAQS } from "../lib/guttalksContent";
@@ -63,10 +63,10 @@ export default function ContactPage() {
   ];
 
   const socialLinks = [
-    { name: "Facebook", icon: FiFacebook, url: "https://facebook.com/guttalks", color: "#1877F2" },
-    { name: "Instagram", icon: FiInstagram, url: "https://instagram.com/guttalks", color: "#E4405F" },
-    { name: "Twitter", icon: FiTwitter, url: "https://twitter.com/guttalks", color: "#1DA1F2" },
-    { name: "LinkedIn", icon: FiLinkedin, url: "https://linkedin.com/company/guttalks", color: "#0077B5" },
+    { name: "Facebook", icon: FiFacebook, url: "https://www.facebook.com/people/Gut-Talks/61593081512303/", color: "#1877F2" },
+    { name: "Instagram", icon: FiInstagram, url: "https://www.instagram.com/gut_talks_/", color: "#E4405F" },
+    { name: "LinkedIn", icon: FiLinkedin, url: "https://www.linkedin.com/in/gut-talks-7b655042a/", color: "#0077B5" },
+    { name: "Google", icon: FaGoogle, url: "https://share.google/7qbFlUldgr8UErTLE", color: "#4285F4" },
     { name: "WhatsApp", icon: FaWhatsapp, url: CONTACT.whatsapp, color: "#25D366" },
   ];
 

@@ -20,7 +20,7 @@ import { getImageUrl } from '../lib/api';
 import { useConsultationOffer } from '../context/ConsultationOfferContext';
 
 const Navbar = () => {
-  const { effectivePrice, isOfferValid } = useConsultationOffer();
+  const { effectivePrice, basePrice, offerPrice, isOfferValid } = useConsultationOffer();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [products, setProducts] = useState([]);
@@ -207,8 +207,16 @@ const Navbar = () => {
               </Link>
             )}
 
-            <motion.button whileHover={{ scale: 1.05 }} className="bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white px-5 py-2 rounded-xl text-sm font-semibold" onClick={() => openScheduleModal('GutTalks Root Rx Session')}>
-              {isOfferValid ? `Book ₹${effectivePrice} Call` : `Book Call (₹${effectivePrice})`}
+            <motion.button whileHover={{ scale: 1.05 }} className="bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white px-5 py-2 rounded-xl text-sm font-semibold flex items-center gap-1.5 shadow-md" onClick={() => openScheduleModal('GutTalks Root Rx Session')}>
+              {isOfferValid ? (
+                <>
+                  <span>Book</span>
+                  <span className="line-through text-white/70 text-xs font-normal">₹{basePrice}</span>
+                  <span className="font-bold text-amber-300">₹{offerPrice} Call</span>
+                </>
+              ) : (
+                <span>Book Call (₹{basePrice})</span>
+              )}
             </motion.button>
           </div>
 
@@ -357,7 +365,16 @@ const Navbar = () => {
                   }}
                   className="w-full bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white p-3 rounded-xl font-semibold flex items-center justify-center gap-2"
                 >
-                  <FiCalendar /> {isOfferValid ? `Book ₹${effectivePrice} Consultation` : `Book Consultation (₹${effectivePrice})`}
+                  <FiCalendar />
+                  {isOfferValid ? (
+                    <>
+                      <span>Book</span>
+                      <span className="line-through text-white/70 text-xs font-normal">₹{basePrice}</span>
+                      <span className="font-bold text-amber-300">₹{offerPrice} Consultation</span>
+                    </>
+                  ) : (
+                    <span>Book Consultation (₹{basePrice})</span>
+                  )}
                 </button>
               </div>
             </motion.div>

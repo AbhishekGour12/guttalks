@@ -7,6 +7,7 @@ import sendEmail from "../services/email.js";
 export const sendOrderStatusEmail = async (userEmail, orderDetails) => {
   const {
     orderId,
+    trackingId,
     status,           // e.g., "Order Placed", "Shipped", "Delivered", "Cancelled"
     customStatus,
     items,
@@ -116,11 +117,12 @@ export const sendOrderStatusEmail = async (userEmail, orderDetails) => {
     .btn {
       display: inline-block;
       background-color: #18606D;
-      color: white;
+      color: #ffffff !important;
       padding: 10px 20px;
       border-radius: 40px;
       text-decoration: none;
       margin-top: 15px;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -137,6 +139,7 @@ export const sendOrderStatusEmail = async (userEmail, orderDetails) => {
       </div>
       <div class="info-box">
         <p><strong>📅 Updated on:</strong> ${new Date(updatedAt).toLocaleString('en-IN')}</p>
+        ${trackingId ? `<p style="font-size:15px; font-weight:bold; color:#18606D;">🚚 Tracking ID / AWB: ${trackingId}</p>` : ''}
         ${shippingAddress ? `<p><strong>📍 Shipping Address:</strong><br/>${shippingAddress.fullName}<br/>${shippingAddress.addressLine1}${shippingAddress.addressLine2 ? ', '+shippingAddress.addressLine2 : ''}<br/>${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}<br/>📞 ${shippingAddress.phone}</p>` : ''}
       </div>
       
@@ -159,10 +162,10 @@ export const sendOrderStatusEmail = async (userEmail, orderDetails) => {
         Total Paid: ₹${totalAmount?.toFixed(2) || '0'}
       </div>
       
-      <div style="text-align: center; color: "white">
-        <a href="${process.env.FRONTEND_URL}/dashboard" class="btn">View Order Details</a>
+      <div style="text-align: center;">
+        <a href="${process.env.FRONTEND_URL}/dashboard" class="btn" style="color: #ffffff !important; text-decoration: none;">View Order Details</a>
       </div>
-      <p style="font-size: 12px; margin-top: 20px;">If you have any questions, please contact us at help@guttalks.in or +91 98765 43210.</p>
+      <p style="font-size: 12px; margin-top: 20px;">If you have any questions, please contact us at help@guttalks.in or +91 98888 03053.</p>
     </div>
     <div class="footer">
       <p>GutTalks – Your digestive wellness partner</p>
@@ -458,7 +461,7 @@ export const sendBookingConfirmationEmail = async (userEmail, bookingDetails) =>
   </a>
 </div>
       
-      <p class="important">⚠️ For any queries regarding this invoice or your consultation, please contact us at help@guttalks.in or +91 98765 43210.</p>
+      <p class="important">⚠️ For any queries regarding this invoice or your consultation, please contact us at help@guttalks.in or +91 98888 03053.</p>
     </div>
     <div class="footer">
       <p>GutTalks – Your partner in digestive wellness</p>
@@ -524,7 +527,7 @@ export const sendRescheduleEmail = async (userEmail, details) => {
    Join Consultation
 </a>
       </div>
-      <p style="font-size: 12px; margin-top: 20px;">If the new time doesn't work for you, please contact us at help@guttalks.in or +91 98765 43210 to reschedule again.</p>
+      <p style="font-size: 12px; margin-top: 20px;">If the new time doesn't work for you, please contact us at help@guttalks.in or +91 98888 03053 to reschedule again.</p>
     </div>
     <div class="footer">
       <p>GutTalks – Your digestive wellness partner</p>
@@ -671,7 +674,7 @@ export const sendBookingStatusEmail = async (userEmail, details) => {
         <a href="${process.env.FRONTEND_URL}/dashboard" class="btn" style="color:#ffffff !important;">Go to Dashboard</a>
       </div>
       
-      <p style="font-size: 12px; margin-top: 25px; color: #64748B;">If you have any questions, please contact us at help@guttalks.in or +91 98765 43210.</p>
+      <p style="font-size: 12px; margin-top: 25px; color: #64748B;">If you have any questions, please contact us at help@guttalks.in or +91 98888 03053.</p>
     </div>
     <div class="footer">
       <p>GutTalks – Your partner in digestive wellness</p>

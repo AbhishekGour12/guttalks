@@ -57,9 +57,12 @@ export default function OfferBannerWidget() {
 
                 <button
                   onClick={handleBookNow}
-                  className="bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold px-3 py-1 rounded-full text-xs transition shadow-md hidden xs:flex items-center gap-1"
+                  className="bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold px-3 py-1 rounded-full text-xs transition shadow-md hidden xs:flex items-center gap-1.5"
                 >
-                  <FaCalendarCheck /> Book @ ₹{offerPrice}
+                  <FaCalendarCheck />
+                  <span>Book</span>
+                  <span className="line-through text-amber-900/70 text-[11px] font-normal">₹{basePrice}</span>
+                  <span>₹{offerPrice}</span>
                 </button>
 
                 <button
@@ -99,9 +102,11 @@ export default function OfferBannerWidget() {
 
               <button
                 onClick={handleBookNow}
-                className="bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white font-bold px-3.5 py-1.5 rounded-full text-xs shadow-md hover:shadow-lg hover:scale-105 transition flex items-center gap-1"
+                className="bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white font-bold px-3.5 py-1.5 rounded-full text-xs shadow-md hover:shadow-lg hover:scale-105 transition flex items-center gap-1.5"
               >
-                <FaTag /> Book @ ₹{offerPrice}
+                <FaTag />
+                <span className="line-through text-white/70 text-[11px] font-normal">₹{basePrice}</span>
+                <span className="text-amber-300">₹{offerPrice}</span>
               </button>
             </div>
           </motion.div>

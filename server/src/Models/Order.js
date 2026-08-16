@@ -41,10 +41,11 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: { type: String, enum: ['cod', 'online'], default: 'online' },
   paymentStatus: { type: String, enum: ['Pending', 'Paid', 'Failed'], default: 'Pending' },
   paymentDetails: Object,
-  // Shiprocket fields
+  // Shiprocket / Courier fields
   shiprocketOrderId: String,
   shipmentId: String,
   awbCode: String,
+  trackingId: { type: String, default: "" },
   shiprocketStatus: { type: String, default: 'Pending' },
   shiprocketStatusDate: Date,
   trackingHistory: { type: Array, default: [] },

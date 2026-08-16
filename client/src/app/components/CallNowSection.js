@@ -101,7 +101,7 @@ const CallNowSection = () => {
           >
             {/* Primary Call Button */}
             <motion.a
-              href="tel:+1234567890"
+              href="tel:+919888803053"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="group relative bg-[#2E7D32] text-white font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-auto"
@@ -113,7 +113,7 @@ const CallNowSection = () => {
 
             {/* Secondary WhatsApp Button */}
             <motion.a
-              href="https://wa.me/1234567890"
+              href="https://wa.me/919888803053"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="bg-white border border-[#E1ECD2] text-gray-700 font-medium px-5 py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm hover:bg-[#F5F9F0] hover:border-[#2E7D32]/30 w-full sm:w-auto"

@@ -1,11 +1,22 @@
 "use client";
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 const ServicesSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
+
+  const handleCardClick = () => {
+    const el = document.getElementById('products');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      router.push('/#products');
+    }
+  };
 
   // Fix hydration by setting mounted state
   useEffect(() => {
@@ -157,7 +168,8 @@ const ServicesSection = () => {
               animate={mounted && isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               whileHover={{ y: -8 }}
-              className="group relative"
+              onClick={handleCardClick}
+              className="group relative cursor-pointer"
             >
               <div className="relative h-full bg-white rounded-2xl p-6 sm:p-7 shadow-lg hover:shadow-2xl transition-all duration-300 border border-[#D9EEF2] hover:border-[#18606D]/30">
                 
@@ -224,7 +236,8 @@ const ServicesSection = () => {
               animate={mounted && isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               whileHover={{ y: -4 }}
-              className="group relative min-w-[85%] sm:min-w-[60%] snap-start"
+              onClick={handleCardClick}
+              className="group relative min-w-[85%] sm:min-w-[60%] snap-start cursor-pointer"
             >
               <div className="relative h-full bg-white rounded-2xl p-5 shadow-lg border border-[#D9EEF2]">
                 

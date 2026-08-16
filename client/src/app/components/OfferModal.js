@@ -176,7 +176,9 @@ const OfferModal = ({ onBookNow, onClose, setShowScheduleModal }) => {
                   className="flex-1 bg-gradient-to-r from-[#18606D] to-[#2A7F8F] text-white font-bold py-2.5 px-3 rounded-xl text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition"
                 >
                   <FaCalendarCheck className="w-3.5 h-3.5" />
-                  Book ₹{offerPrice} Session
+                  <span>Book</span>
+                  <span className="line-through text-white/70 text-xs font-normal">₹{basePrice}</span>
+                  <span className="font-bold text-amber-300">₹{offerPrice} Session</span>
                   <FaArrowRight className="w-3 h-3" />
                 </motion.button>
                 <button

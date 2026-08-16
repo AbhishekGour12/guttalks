@@ -292,7 +292,7 @@ const sendReplyEmail = async (contact, replyMessage) => {
         <div class="signature">
             <p><strong>Best regards,</strong><br>
             The GutTalks Support Team<br>
-            <a href="mailto:help@guttalks.in">help@guttalks.in</a> | <a href="tel:+919876543210">+91 98765 43210</a></p>
+            <a href="mailto:help@guttalks.in">help@guttalks.in</a> | <a href="tel:+919888803053">+91 98888 03053</a></p>
         </div>
         
         <div class="footer">
@@ -694,7 +694,7 @@ const userMailOptions = {
                 </div>
                 <div class="contact-info">
                     <strong>📞 Need Immediate Assistance?</strong>
-                    <div class="phone-number">+91 98765 43210</div>
+                    <div class="phone-number">+91 98888 03053</div>
                     <div class="hours">Available 10 AM – 9 PM IST (All days working)</div>
                     <p style="margin-top: 10px; font-size: 14px;">Our support team is here to help with any gut health queries.</p>
                 </div>
