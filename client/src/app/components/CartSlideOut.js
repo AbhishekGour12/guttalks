@@ -422,7 +422,7 @@ useEffect(() => { fetchCart(); }, [user]);
         finalAmount: computedFinalAmount,
         phone: token,
         items: mappedCart,
-        userId: user ? true : false,
+        userId: user?._id || null,
       };
       const apiBaseUrl = getApiBaseUrl();
       const order = await axios.post(`${apiBaseUrl}/api/order`, formData);

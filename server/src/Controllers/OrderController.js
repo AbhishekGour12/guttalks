@@ -24,30 +24,52 @@ export const createOrder = async (req, res) => {
       finalAmount
     } = req.body;
 
+    const getProductId = (item) => {
+      if (!item) return null;
+      if (typeof item.product === 'string') return item.product;
+      if (item.product && item.product._id) return item.product._id.toString();
+      if (item.productId) return item.productId.toString();
+      if (typeof item.product === 'object' && item.product.toString) return item.product.toString();
+      return null;
+    };
+
     let user = null;
     if (phone) {
       const formattedPhone = formatPhone(phone);
       user = await User.findOne({ phone: formattedPhone });
     }
+    if (!user && req.user?.id && mongoose.isValidObjectId(req.user.id)) {
+      user = await User.findById(req.user.id);
+    }
 
     let cartItems = [];
+
+    // Prioritize items passed directly in req.body
+    if (items && Array.isArray(items) && items.length > 0) {
+      for (const item of items) {
+        const prodId = getProductId(item);
+        if (!prodId || !mongoose.isValidObjectId(prodId)) {
+          continue;
+        }
+        const productDoc = await Product.findById(prodId);
+        if (!productDoc) throw new Error(`Product not found`);
+        cartItems.push({
+          product: productDoc,
+          quantity: item.quantity || 1,
+          variant: item.variant || null
+        });
+      }
+    } else if (user) {
+      // Otherwise fetch from user cart in database
+      const cart = await Cart.findOne({ userId: user._id }).populate("items.product");
+      if (cart && cart.items && cart.items.length > 0) {
+        cartItems = cart.items.filter(i => i.product);
+      }
+    }
+
+    if (!cartItems || cartItems.length === 0) throw new Error("Your cart is empty");
     if (!shippingAddress) throw new Error("Shipping address required");
     if (!paymentMethod) throw new Error("Payment method required");
-
-    // For guest orders (no userId)
-    if (!userId) {
-      if (!items || items.length === 0) throw new Error("No items provided");
-      cartItems = items.map((item) => ({
-        product: item.product,
-        quantity: item.quantity,
-        variant: item.variant || null
-      }));
-    } else {
-      // For logged-in users, fetch from cart
-      const cart = await Cart.findOne({ userId: user?._id }).populate("items.product");
-      if (!cart || cart.items.length === 0) throw new Error("Your cart is empty");
-      cartItems = cart.items;
-    }
 
     for (const item of cartItems) {
       if (item.quantity > item.product.stock) {
@@ -55,10 +77,8 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    if (!cartItems || cartItems.length === 0) throw new Error("Your cart is empty");
-
     const subtotal = cartItems.reduce((sum, item) => {
-      const price = item.variant?.price ?? item.product.salePrice;
+      const price = item.variant?.price ?? item.product.salePrice ?? item.product.price ?? 0;
       return sum + (price * item.quantity);
     }, 0);
 
@@ -75,13 +95,13 @@ export const createOrder = async (req, res) => {
     );
     if (totalWeight > 0) calculatedWeight = totalWeight;
 
-    // Format order items
+    // Format order items with valid ObjectIds
     const orderItems = cartItems.map((item) => {
-      const price = item.variant?.price ?? item.product.salePrice;
+      const price = item.variant?.price ?? item.product.salePrice ?? item.product.price ?? 0;
       return {
         productId: item.product._id,
         name: item.product.name,
-        image: item.product.imageUrls?.[0] || "",
+        image: item.product.imageUrls?.[0] || item.product.image || "",
         priceAtPurchase: price,
         quantity: item.quantity,
         weight: item.product.weight || 0.2,
@@ -89,9 +109,8 @@ export const createOrder = async (req, res) => {
       };
     });
 
-    // Prepare order object
+    // Prepare order object (userId is always valid ObjectId or null)
     const newOrder = new Order({
-      _id: new mongoose.Types.ObjectId().toString(),
       userId: user?._id || null,
       items: orderItems,
       shippingAddress,
@@ -108,13 +127,13 @@ export const createOrder = async (req, res) => {
 
     await newOrder.save();
 
-    // Reduce stock atomically
+    // Reduce stock atomically using valid ObjectId instance
     for (const item of cartItems) {
-      const productId = item.product?._id?.toString() || item.product?.toString();
+      const productId = item.product._id;
       const freshProduct = await Product.findById(productId);
 
       if (!freshProduct) {
-        throw new Error("Product not found");
+        throw new Error(`Product not found: ${item.product.name}`);
       }
 
       if (item.quantity > freshProduct.stock) {
@@ -122,7 +141,7 @@ export const createOrder = async (req, res) => {
       }
 
       const updated = await Product.updateOne(
-        { _id: item.product._id, stock: { $gte: item.quantity } },
+        { _id: productId, stock: { $gte: item.quantity } },
         { $inc: { stock: -item.quantity } }
       );
 
@@ -132,7 +151,7 @@ export const createOrder = async (req, res) => {
     }
 
     // Clear cart
-    if (userId && user) {
+    if (user) {
       const cart = await Cart.findOne({ userId: user._id });
       if (cart) {
         cart.items = [];
